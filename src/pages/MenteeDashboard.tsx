@@ -150,9 +150,13 @@ const MenteeDashboard = () => {
                       </div>
                     </div>
                     <div className="mt-4 flex gap-2">
-                      <button onClick={() => requestMentorship(mentor.user_id)}
+                      <button onClick={() => navigate(`/book/${mentor.user_id}`)}
                         className="flex-1 gradient-ocean text-primary-foreground py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
-                        Request Mentorship
+                        Book Session
+                      </button>
+                      <button onClick={() => requestMentorship(mentor.user_id)}
+                        className="px-4 py-2.5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-muted transition-colors text-xs">
+                        Request
                       </button>
                       <button onClick={() => navigate(`/chat/${mentor.user_id}`)}
                         className="px-4 py-2.5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-muted transition-colors">
