@@ -16,6 +16,7 @@ import MenteeDashboard from "./pages/MenteeDashboard";
 import MentorSetup from "./pages/MentorSetup";
 import MentorDashboard from "./pages/MentorDashboard";
 import Chat from "./pages/Chat";
+import BookSession from "./pages/BookSession";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/mentor/setup" element={<ProtectedRoute><MentorSetup /></ProtectedRoute>} />
             <Route path="/mentor/dashboard" element={<ProtectedRoute><MentorDashboard /></ProtectedRoute>} />
             <Route path="/chat/:partnerId" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+            <Route path="/book/:mentorId" element={<ProtectedRoute><BookSession /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

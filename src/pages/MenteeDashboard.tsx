@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import SessionsList from "@/components/SessionsList";
 import { Star, Calendar, MessageSquare, TrendingUp, Search, Bell, User, BadgeCheck, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -149,9 +150,13 @@ const MenteeDashboard = () => {
                       </div>
                     </div>
                     <div className="mt-4 flex gap-2">
-                      <button onClick={() => requestMentorship(mentor.user_id)}
+                      <button onClick={() => navigate(`/book/${mentor.user_id}`)}
                         className="flex-1 gradient-ocean text-primary-foreground py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
-                        Request Mentorship
+                        Book Session
+                      </button>
+                      <button onClick={() => requestMentorship(mentor.user_id)}
+                        className="px-4 py-2.5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-muted transition-colors text-xs">
+                        Request
                       </button>
                       <button onClick={() => navigate(`/chat/${mentor.user_id}`)}
                         className="px-4 py-2.5 rounded-lg border border-border text-foreground text-sm font-medium hover:bg-muted transition-colors">
@@ -165,13 +170,7 @@ const MenteeDashboard = () => {
           </>
         )}
 
-        {tab === "sessions" && (
-          <div className="bg-card rounded-2xl border border-border p-8 text-center">
-            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No Sessions Yet</h3>
-            <p className="text-sm text-muted-foreground">Once a mentor accepts your request, you'll be able to schedule sessions.</p>
-          </div>
-        )}
+        {tab === "sessions" && <SessionsList role="mentee" />}
 
         {tab === "progress" && (
           <div className="bg-card rounded-2xl border border-border p-8 text-center">

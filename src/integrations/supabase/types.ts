@@ -176,6 +176,45 @@ export type Database = {
         }
         Relationships: []
       }
+      sessions: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          mentee_id: string
+          mentor_id: string
+          notes: string | null
+          scheduled_date: string
+          start_time: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          mentee_id: string
+          mentor_id: string
+          notes?: string | null
+          scheduled_date: string
+          start_time: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          mentee_id?: string
+          mentor_id?: string
+          notes?: string | null
+          scheduled_date?: string
+          start_time?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
