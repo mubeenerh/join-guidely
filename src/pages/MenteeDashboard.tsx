@@ -170,13 +170,7 @@ const MenteeDashboard = () => {
           </>
         )}
 
-        {tab === "sessions" && (
-          <div className="bg-card rounded-2xl border border-border p-8 text-center">
-            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No Sessions Yet</h3>
-            <p className="text-sm text-muted-foreground">Once a mentor accepts your request, you'll be able to schedule sessions.</p>
-          </div>
-        )}
+        {tab === "sessions" && <SessionsList role="mentee" />}
 
         {tab === "progress" && (
           <div className="bg-card rounded-2xl border border-border p-8 text-center">

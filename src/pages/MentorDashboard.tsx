@@ -154,13 +154,7 @@ const MentorDashboard = () => {
           </div>
         )}
 
-        {tab === "schedule" && (
-          <div className="bg-card rounded-2xl border border-border p-8 text-center">
-            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">Your Schedule</h3>
-            <p className="text-sm text-muted-foreground">Upcoming sessions will appear here.</p>
-          </div>
-        )}
+        {tab === "schedule" && <SessionsList role="mentor" />}
 
         {tab === "impact" && (
           <div className="bg-card rounded-2xl border border-border p-8 text-center">
