@@ -16,6 +16,7 @@ import MenteeDashboard from "./pages/MenteeDashboard";
 import MentorSetup from "./pages/MentorSetup";
 import MentorDashboard from "./pages/MentorDashboard";
 import Chat from "./pages/Chat";
+import BookSession from "./pages/BookSession";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
