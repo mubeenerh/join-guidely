@@ -1,10 +1,41 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { GraduationCap, Users } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 
 const SelectRole = () => {
   const navigate = useNavigate();
+  const { user, profile, refreshProfile } = useAuth();
+  const { toast } = useToast();
+
+  // If user already has a role, redirect
+  if (profile?.role === "mentee") {
+    navigate("/mentee/dashboard", { replace: true });
+    return null;
+  }
+  if (profile?.role === "mentor") {
+    navigate("/mentor/setup", { replace: true });
+    return null;
+  }
+
+  const selectRole = async (role: "mentee" | "mentor") => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ role })
+      .eq("user_id", user.id);
+
+    if (error) {
+      toast({ title: "Failed to set role", variant: "destructive" });
+      return;
+    }
+    await refreshProfile();
+    if (role === "mentee") navigate("/mentee/onboarding");
+    else navigate("/mentor/setup");
+  };
 
   return (
     <div className="min-h-screen gradient-sky flex items-center justify-center p-4">
@@ -14,12 +45,8 @@ const SelectRole = () => {
         <p className="text-muted-foreground mb-12">How would you like to use Guidedly?</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => navigate("/mentee/onboarding")}
-            className="bg-card rounded-2xl border-2 border-border p-8 text-center hover:border-primary/40 hover:shadow-lg transition-all group"
-          >
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => selectRole("mentee")}
+            className="bg-card rounded-2xl border-2 border-border p-8 text-center hover:border-primary/40 hover:shadow-lg transition-all group">
             <div className="w-16 h-16 rounded-2xl gradient-ocean flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
               <GraduationCap className="w-8 h-8 text-primary-foreground" />
             </div>
@@ -27,12 +54,8 @@ const SelectRole = () => {
             <p className="text-sm text-muted-foreground">Find a mentor to guide your business growth</p>
           </motion.button>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => navigate("/mentor/dashboard")}
-            className="bg-card rounded-2xl border-2 border-border p-8 text-center hover:border-primary/40 hover:shadow-lg transition-all group"
-          >
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => selectRole("mentor")}
+            className="bg-card rounded-2xl border-2 border-border p-8 text-center hover:border-primary/40 hover:shadow-lg transition-all group">
             <div className="w-16 h-16 rounded-2xl gradient-ocean flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
               <Users className="w-8 h-8 text-primary-foreground" />
             </div>

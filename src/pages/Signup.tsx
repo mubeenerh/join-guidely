@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 
 const Signup = () => {
@@ -8,10 +10,28 @@ const Signup = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "", confirmPassword: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { signUp } = useAuth();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    if (form.password !== form.confirmPassword) {
+      toast({ title: "Passwords don't match", variant: "destructive" });
+      return;
+    }
+    if (form.password.length < 6) {
+      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    const { error } = await signUp(form.email, form.password, form.firstName, form.lastName);
+    setLoading(false);
+    if (error) {
+      toast({ title: error.message, variant: "destructive" });
+    } else {
+      setSubmitted(true);
+    }
   };
 
   if (submitted) {
@@ -25,9 +45,7 @@ const Signup = () => {
           <p className="text-muted-foreground mb-6">
             We've sent a verification link to <strong className="text-foreground">{form.email}</strong>. Please check your inbox.
           </p>
-          <Link to="/login" className="text-sm font-medium text-primary hover:underline">
-            Go to Login
-          </Link>
+          <Link to="/login" className="text-sm font-medium text-primary hover:underline">Go to Login</Link>
         </div>
       </div>
     );
@@ -47,49 +65,25 @@ const Signup = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-foreground mb-1.5 block">First Name</label>
-              <input
-                type="text"
-                required
-                value={form.firstName}
-                onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition"
-                placeholder="John"
-              />
+              <input type="text" required value={form.firstName} onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))}
+                className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition" placeholder="John" />
             </div>
             <div>
               <label className="text-sm font-medium text-foreground mb-1.5 block">Last Name</label>
-              <input
-                type="text"
-                required
-                value={form.lastName}
-                onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition"
-                placeholder="Doe"
-              />
+              <input type="text" required value={form.lastName} onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))}
+                className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition" placeholder="Doe" />
             </div>
           </div>
           <div>
             <label className="text-sm font-medium text-foreground mb-1.5 block">Email</label>
-            <input
-              type="email"
-              required
-              value={form.email}
-              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition"
-              placeholder="john@example.com"
-            />
+            <input type="email" required value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition" placeholder="john@example.com" />
           </div>
           <div>
             <label className="text-sm font-medium text-foreground mb-1.5 block">Password</label>
             <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                value={form.password}
-                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition pr-12"
-                placeholder="••••••••"
-              />
+              <input type={showPassword ? "text" : "password"} required value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition pr-12" placeholder="••••••••" />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -98,21 +92,15 @@ const Signup = () => {
           <div>
             <label className="text-sm font-medium text-foreground mb-1.5 block">Confirm Password</label>
             <div className="relative">
-              <input
-                type={showConfirm ? "text" : "password"}
-                required
-                value={form.confirmPassword}
-                onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition pr-12"
-                placeholder="••••••••"
-              />
+              <input type={showConfirm ? "text" : "password"} required value={form.confirmPassword} onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition pr-12" placeholder="••••••••" />
               <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                 {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
-          <button type="submit" className="w-full gradient-ocean text-primary-foreground py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
-            Create Account
+          <button type="submit" disabled={loading} className="w-full gradient-ocean text-primary-foreground py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50">
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
         <p className="text-sm text-muted-foreground text-center mt-6">
