@@ -1,0 +1,48 @@
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { GraduationCap, Users } from "lucide-react";
+import logo from "@/assets/logo.png";
+
+const SelectRole = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen gradient-sky flex items-center justify-center p-4">
+      <div className="max-w-2xl w-full text-center">
+        <img src={logo} alt="Guidedly" className="h-16 w-16 rounded-full mx-auto mb-6" />
+        <h1 className="text-3xl font-bold text-foreground mb-2">Choose Your Role</h1>
+        <p className="text-muted-foreground mb-12">How would you like to use Guidedly?</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate("/mentee/onboarding")}
+            className="bg-card rounded-2xl border-2 border-border p-8 text-center hover:border-primary/40 hover:shadow-lg transition-all group"
+          >
+            <div className="w-16 h-16 rounded-2xl gradient-ocean flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+              <GraduationCap className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground mb-2">I'm a Mentee</h2>
+            <p className="text-sm text-muted-foreground">Find a mentor to guide your business growth</p>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate("/mentor/dashboard")}
+            className="bg-card rounded-2xl border-2 border-border p-8 text-center hover:border-primary/40 hover:shadow-lg transition-all group"
+          >
+            <div className="w-16 h-16 rounded-2xl gradient-ocean flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+              <Users className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground mb-2">I'm a Mentor</h2>
+            <p className="text-sm text-muted-foreground">Share your expertise and help others grow</p>
+          </motion.button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SelectRole;
