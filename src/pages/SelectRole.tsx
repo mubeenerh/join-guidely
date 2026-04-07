@@ -4,22 +4,41 @@ import { GraduationCap, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState } from "react";
 import logo from "@/assets/logo.png";
 
 const SelectRole = () => {
   const navigate = useNavigate();
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
+  const [checking, setChecking] = useState(true);
 
-  // If user already has a role, redirect
-  if (profile?.role === "mentee") {
-    navigate("/mentee/dashboard", { replace: true });
-    return null;
-  }
-  if (profile?.role === "mentor") {
-    navigate("/mentor/setup", { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    const checkRedirect = async () => {
+      if (!profile?.role) {
+        setChecking(false);
+        return;
+      }
+      if (profile.role === "mentee") {
+        navigate("/mentee/dashboard", { replace: true });
+        return;
+      }
+      if (profile.role === "mentor") {
+        // Check if mentor profile exists already
+        const { data } = await supabase
+          .from("mentor_profiles")
+          .select("id")
+          .eq("user_id", user!.id)
+          .maybeSingle();
+        navigate(data ? "/mentor/dashboard" : "/mentor/setup", { replace: true });
+        return;
+      }
+      setChecking(false);
+    };
+    checkRedirect();
+  }, [profile, user, navigate]);
+
+  if (checking) return null;
 
   const selectRole = async (role: "mentee" | "mentor") => {
     if (!user) return;
