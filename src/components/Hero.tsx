@@ -54,7 +54,7 @@ const Hero = () => {
             <div className="relative">
               <div className="w-64 h-64 sm:w-80 sm:h-80 rounded-full gradient-wave p-1 animate-float">
                 <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
-                  <img src={logo} alt="guidely" className="w-3/4 h-3/4 object-contain" />
+                  <img src={logo} alt="GUIDELY" className="w-3/4 h-3/4 object-contain" />
                 </div>
               </div>
               {/* Floating stats */}

@@ -110,7 +110,7 @@ const BookSession = () => {
           <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <img src={logo} alt="guidely" className="h-8 w-8 rounded-full" />
+          <img src={logo} alt="GUIDELY" className="h-8 w-8 rounded-full" />
           <span className="font-bold text-foreground">Book a Session</span>
         </div>
       </nav>

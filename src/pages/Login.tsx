@@ -30,8 +30,8 @@ const Login = () => {
     <div className="min-h-screen gradient-sky flex items-center justify-center p-4">
       <div className="bg-card rounded-2xl border border-border shadow-xl p-8 max-w-md w-full">
         <Link to="/" className="flex items-center gap-2 justify-center mb-8">
-          <img src={logo} alt="guidely" className="h-10 w-10 rounded-full" />
-          <span className="text-xl font-bold text-foreground">guidely</span>
+          <img src={logo} alt="GUIDELY" className="h-10 w-10 rounded-full" />
+          <span className="text-xl font-bold text-foreground">GUIDELY</span>
         </Link>
         <h1 className="text-2xl font-bold text-foreground text-center mb-2">Welcome Back</h1>
         <p className="text-sm text-muted-foreground text-center mb-8">Log in to your account</p>

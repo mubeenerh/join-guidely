@@ -91,7 +91,7 @@ const AdminDashboard = () => {
       {/* Header */}
       <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src={logo} alt="guidely" className="h-8 w-8 rounded-full" />
+          <img src={logo} alt="GUIDELY" className="h-8 w-8 rounded-full" />
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-primary" />
             <span className="text-lg font-bold text-foreground">Admin Panel</span>

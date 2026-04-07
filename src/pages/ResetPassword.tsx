@@ -32,7 +32,7 @@ const ResetPassword = () => {
   return (
     <div className="min-h-screen gradient-sky flex items-center justify-center p-4">
       <div className="bg-card rounded-2xl border border-border shadow-xl p-8 max-w-md w-full text-center">
-        <img src={logo} alt="guidely" className="h-10 w-10 rounded-full mx-auto mb-6" />
+        <img src={logo} alt="GUIDELY" className="h-10 w-10 rounded-full mx-auto mb-6" />
         <h1 className="text-2xl font-bold text-foreground mb-2">Set New Password</h1>
         <p className="text-sm text-muted-foreground mb-8">Enter your new password below.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
