@@ -57,7 +57,7 @@ const MentorSetup = () => {
       certifications,
       achievements,
       available: availability.length > 0,
-    });
+    }, { onConflict: "user_id" });
 
     if (profileError) {
       toast({ title: profileError.message, variant: "destructive" });
