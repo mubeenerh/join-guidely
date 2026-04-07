@@ -27,8 +27,8 @@ const ForgotPassword = () => {
     <div className="min-h-screen gradient-sky flex items-center justify-center p-4">
       <div className="bg-card rounded-2xl border border-border shadow-xl p-8 max-w-md w-full text-center">
         <Link to="/" className="flex items-center gap-2 justify-center mb-8">
-          <img src={logo} alt="Guidedly" className="h-10 w-10 rounded-full" />
-          <span className="text-xl font-bold text-foreground">Guidedly</span>
+          <img src={logo} alt="guidely" className="h-10 w-10 rounded-full" />
+          <span className="text-xl font-bold text-foreground">guidely</span>
         </Link>
         {sent ? (
           <>
@@ -59,3 +59,4 @@ const ForgotPassword = () => {
 };
 
 export default ForgotPassword;
+

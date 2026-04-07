@@ -53,8 +53,8 @@ const AdminLogin = () => {
     <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <div className="bg-card rounded-2xl border border-border shadow-xl p-8 max-w-md w-full">
         <Link to="/" className="flex items-center gap-2 justify-center mb-6">
-          <img src={logo} alt="Guidedly" className="h-10 w-10 rounded-full" />
-          <span className="text-xl font-bold text-foreground">Guidedly</span>
+          <img src={logo} alt="guidely" className="h-10 w-10 rounded-full" />
+          <span className="text-xl font-bold text-foreground">guidely</span>
         </Link>
         <div className="flex items-center justify-center gap-2 mb-2">
           <ShieldCheck className="w-6 h-6 text-primary" />
@@ -66,7 +66,7 @@ const AdminLogin = () => {
           <div>
             <label className="text-sm font-medium text-foreground mb-1.5 block">Email</label>
             <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring outline-none transition" placeholder="admin@guidedly.com" />
+              className="w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring outline-none transition" placeholder="admin@guidely.com" />
           </div>
           <div>
             <label className="text-sm font-medium text-foreground mb-1.5 block">Password</label>
@@ -91,3 +91,4 @@ const AdminLogin = () => {
 };
 
 export default AdminLogin;
+

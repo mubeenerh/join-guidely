@@ -7,8 +7,8 @@ const Footer = () => {
       <div className="container">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="Guidedly" className="h-8 w-8 rounded-full" />
-            <span className="font-bold text-foreground">Guidedly</span>
+            <img src={logo} alt="guidely" className="h-8 w-8 rounded-full" />
+            <span className="font-bold text-foreground">guidely</span>
           </div>
           <p className="text-sm text-muted-foreground">
             Connect. Advise. Grow.
@@ -19,7 +19,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="mt-8 pt-6 border-t border-border text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Guidedly. All rights reserved.
+          © {new Date().getFullYear()} guidely. All rights reserved.
         </div>
       </div>
     </footer>
@@ -27,3 +27,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

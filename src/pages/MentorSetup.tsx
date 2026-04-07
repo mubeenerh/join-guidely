@@ -184,7 +184,7 @@ const MentorSetup = () => {
     <div className="min-h-screen gradient-sky flex items-center justify-center p-4">
       <div className="max-w-lg w-full">
         <div className="text-center mb-6">
-          <img src={logo} alt="Guidedly" className="h-12 w-12 rounded-full mx-auto mb-4" />
+          <img src={logo} alt="guidely" className="h-12 w-12 rounded-full mx-auto mb-4" />
         </div>
 
         {/* Progress */}
@@ -219,3 +219,4 @@ const MentorSetup = () => {
 };
 
 export default MentorSetup;
+

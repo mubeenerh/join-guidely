@@ -59,9 +59,9 @@ const SelectRole = () => {
   return (
     <div className="min-h-screen gradient-sky flex items-center justify-center p-4">
       <div className="max-w-2xl w-full text-center">
-        <img src={logo} alt="Guidedly" className="h-16 w-16 rounded-full mx-auto mb-6" />
+        <img src={logo} alt="guidely" className="h-16 w-16 rounded-full mx-auto mb-6" />
         <h1 className="text-3xl font-bold text-foreground mb-2">Choose Your Role</h1>
-        <p className="text-muted-foreground mb-12">How would you like to use Guidedly?</p>
+        <p className="text-muted-foreground mb-12">How would you like to use guidely?</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => selectRole("mentee")}
@@ -88,3 +88,4 @@ const SelectRole = () => {
 };
 
 export default SelectRole;
+

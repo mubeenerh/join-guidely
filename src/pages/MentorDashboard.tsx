@@ -61,8 +61,8 @@ const MentorDashboard = () => {
       <nav className="bg-card border-b border-border sticky top-0 z-40">
         <div className="container flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Guidedly" className="h-8 w-8 rounded-full" />
-            <span className="font-bold text-foreground hidden sm:block">Guidedly</span>
+            <img src={logo} alt="guidely" className="h-8 w-8 rounded-full" />
+            <span className="font-bold text-foreground hidden sm:block">guidely</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/mentor/setup" className="text-sm text-muted-foreground hover:text-foreground">Edit Profile</Link>
@@ -170,3 +170,4 @@ const MentorDashboard = () => {
 };
 
 export default MentorDashboard;
+

@@ -168,3 +168,4 @@ const SessionsList = ({ role }: SessionsListProps) => {
 };
 
 export default SessionsList;
+
