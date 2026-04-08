@@ -32,7 +32,8 @@ const MenteeDashboard = () => {
       const { data: mentorProfiles } = await supabase
         .from("mentor_profiles")
         .select("*")
-        .eq("available", true);
+        .eq("available", true)
+        .eq("verified", true);
 
       if (mentorProfiles && mentorProfiles.length > 0) {
         const userIds = mentorProfiles.map(m => m.user_id);

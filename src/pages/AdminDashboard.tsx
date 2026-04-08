@@ -25,6 +25,7 @@ interface MentorProfile {
   available: boolean;
   rating: number | null;
   sessions_count: number | null;
+  verified: boolean;
 }
 
 interface SessionRow {
@@ -55,7 +56,7 @@ const AdminDashboard = () => {
     setLoading(true);
     const [usersRes, mentorsRes, sessionsRes] = await Promise.all([
       supabase.from("profiles").select("user_id, first_name, last_name, role, created_at").order("created_at", { ascending: false }),
-      supabase.from("mentor_profiles").select("user_id, sector, bio, qualifications, certifications, available, rating, sessions_count"),
+      supabase.from("mentor_profiles").select("user_id, sector, bio, qualifications, certifications, available, rating, sessions_count, verified"),
       supabase.from("sessions").select("id, mentor_id, mentee_id, scheduled_date, start_time, end_time, status").order("scheduled_date", { ascending: false }),
     ]);
     setUsers(usersRes.data || []);
@@ -252,7 +253,10 @@ const AdminDashboard = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="text-lg font-semibold text-foreground">{profile?.first_name} {profile?.last_name}</h3>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.available ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.verified ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                              {m.verified ? "Verified" : "Pending"}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                               {m.available ? "Available" : "Unavailable"}
                             </span>
                           </div>
@@ -273,10 +277,28 @@ const AdminDashboard = () => {
                           )}
                         </div>
                         <div className="flex gap-2 shrink-0">
-                          <button className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition-colors">
-                            <UserCheck className="w-3.5 h-3.5" /> Verify
+                          <button
+                            onClick={async () => {
+                              const { error } = await supabase.from("mentor_profiles").update({ verified: true }).eq("user_id", m.user_id);
+                              if (!error) {
+                                toast({ title: "Mentor verified", description: `${profile?.first_name} ${profile?.last_name} is now visible to mentees.` });
+                                fetchData();
+                              }
+                            }}
+                            disabled={m.verified}
+                            className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${m.verified ? "bg-green-100 text-green-700 opacity-60 cursor-not-allowed" : "bg-green-50 text-green-700 hover:bg-green-100"}`}>
+                            <UserCheck className="w-3.5 h-3.5" /> {m.verified ? "Verified" : "Verify"}
                           </button>
-                          <button className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors">
+                          <button
+                            onClick={async () => {
+                              const { error } = await supabase.from("mentor_profiles").update({ verified: false }).eq("user_id", m.user_id);
+                              if (!error) {
+                                toast({ title: "Mentor suspended", description: `${profile?.first_name} ${profile?.last_name} is no longer visible to mentees.` });
+                                fetchData();
+                              }
+                            }}
+                            disabled={!m.verified}
+                            className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${!m.verified ? "bg-destructive/10 text-destructive opacity-60 cursor-not-allowed" : "bg-destructive/10 text-destructive hover:bg-destructive/20"}`}>
                             <UserX className="w-3.5 h-3.5" /> Suspend
                           </button>
                         </div>
