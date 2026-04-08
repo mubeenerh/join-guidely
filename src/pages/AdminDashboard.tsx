@@ -7,6 +7,7 @@ import logo from "@/assets/logo.png";
 import { useNavigate } from "react-router-dom";
 
 type TabKey = "overview" | "users" | "sessions" | "verification";
+type VerificationFilter = "all" | "pending" | "verified";
 
 interface UserProfile {
   user_id: string;
@@ -47,6 +48,7 @@ const AdminDashboard = () => {
   const [mentors, setMentors] = useState<MentorProfile[]>([]);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [verificationFilter, setVerificationFilter] = useState<VerificationFilter>("all");
 
   useEffect(() => {
     fetchData();
@@ -242,10 +244,18 @@ const AdminDashboard = () => {
             {/* Mentor Verification */}
             {tab === "verification" && (
               <div className="space-y-4">
-                {mentors.length === 0 && (
-                  <div className="bg-card rounded-xl border border-border p-8 text-center text-muted-foreground">No mentor profiles yet</div>
+                <div className="flex gap-2">
+                  {(["all", "pending", "verified"] as VerificationFilter[]).map(f => (
+                    <button key={f} onClick={() => setVerificationFilter(f)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${verificationFilter === f ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
+                      {f} ({f === "all" ? mentors.length : f === "pending" ? mentors.filter(m => !m.verified).length : mentors.filter(m => m.verified).length})
+                    </button>
+                  ))}
+                </div>
+                {mentors.filter(m => verificationFilter === "all" ? true : verificationFilter === "pending" ? !m.verified : m.verified).length === 0 && (
+                  <div className="bg-card rounded-xl border border-border p-8 text-center text-muted-foreground">No {verificationFilter === "all" ? "" : verificationFilter + " "}mentors found</div>
                 )}
-                {mentors.map(m => {
+                {mentors.filter(m => verificationFilter === "all" ? true : verificationFilter === "pending" ? !m.verified : m.verified).map(m => {
                   const profile = users.find(u => u.user_id === m.user_id);
                   return (
                     <div key={m.user_id} className="bg-card rounded-xl border border-border p-6">
