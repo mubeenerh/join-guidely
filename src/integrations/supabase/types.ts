@@ -55,6 +55,7 @@ export type Database = {
           sessions_count: number | null
           updated_at: string
           user_id: string
+          verified: boolean
         }
         Insert: {
           achievements?: string[] | null
@@ -69,6 +70,7 @@ export type Database = {
           sessions_count?: number | null
           updated_at?: string
           user_id: string
+          verified?: boolean
         }
         Update: {
           achievements?: string[] | null
@@ -83,6 +85,7 @@ export type Database = {
           sessions_count?: number | null
           updated_at?: string
           user_id?: string
+          verified?: boolean
         }
         Relationships: []
       }

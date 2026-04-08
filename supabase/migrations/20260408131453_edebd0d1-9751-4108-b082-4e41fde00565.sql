@@ -1,0 +1,1 @@
+ALTER TABLE public.mentor_profiles ADD COLUMN verified boolean NOT NULL DEFAULT false;
