@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, X, Clock } from "lucide-react";
+import { Plus, X, Clock, Upload, Loader2 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const sectors = ["Agriculture", "Poultry", "Fishery", "Fashion", "Food Business", "Fintech", "Edtech", "Medtech", "Tech Startup"];
@@ -14,6 +14,7 @@ const MentorSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [uploadingCert, setUploadingCert] = useState(false);
   const [step, setStep] = useState(0);
 
   const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
@@ -43,6 +44,34 @@ const MentorSetup = () => {
 
   const updateAvailability = (index: number, field: string, value: string | number) => {
     setAvailability(prev => prev.map((a, i) => i === index ? { ...a, [field]: value } : a));
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    
+    setUploadingCert(true);
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${user.id}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("certificates")
+      .upload(filePath, file);
+
+    const prefix = newCert.trim() ? newCert.trim() + " - " : "";
+
+    if (uploadError) {
+      toast({ title: "Upload failed", description: "Storage bucket 'certificates' might be missing. Added as text.", variant: "destructive" });
+      setCertifications([...certifications, `${prefix}${file.name}`]);
+    } else {
+      const { data: { publicUrl } } = supabase.storage.from("certificates").getPublicUrl(filePath);
+      setCertifications([...certifications, `${prefix}${file.name} (${publicUrl})`]);
+      toast({ title: "Certificate uploaded!" });
+    }
+    setNewCert("");
+    setUploadingCert(false);
   };
 
   const handleSubmit = async () => {
@@ -129,6 +158,10 @@ const MentorSetup = () => {
               <input value={newCert} onChange={e => setNewCert(e.target.value)} placeholder="e.g. PMP, AWS Certified"
                 className="flex-1 px-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:ring-2 focus:ring-ring outline-none transition"
                 onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addItem(certifications, setCertifications, newCert, setNewCert))} />
+              <label className={`cursor-pointer gradient-ocean text-primary-foreground px-3 rounded-lg flex items-center justify-center hover:opacity-90 transition-opacity ${uploadingCert ? 'opacity-50 pointer-events-none' : ''}`}>
+                {uploadingCert ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload} disabled={uploadingCert} />
+              </label>
               <button onClick={() => addItem(certifications, setCertifications, newCert, setNewCert)} className="gradient-ocean text-primary-foreground px-3 rounded-lg"><Plus className="w-5 h-5" /></button>
             </div>
             <div className="flex flex-wrap gap-2 mb-6">
