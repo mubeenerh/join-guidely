@@ -16,7 +16,7 @@ const MentorSetup = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
 
-  const [sector, setSector] = useState("");
+  const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
   const [bio, setBio] = useState("");
   const [qualifications, setQualifications] = useState<string[]>([]);
   const [newQual, setNewQual] = useState("");
@@ -51,7 +51,7 @@ const MentorSetup = () => {
 
     const { error: profileError } = await supabase.from("mentor_profiles").upsert({
       user_id: user.id,
-      sector,
+      sector: selectedSectors.join(", "),
       bio,
       qualifications,
       certifications,
@@ -83,12 +83,18 @@ const MentorSetup = () => {
       case 0:
         return (
           <div>
-            <h2 className="text-2xl font-bold text-foreground mb-1">Select Your Sector</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-1">Select Your Sectors</h2>
             <p className="text-sm text-muted-foreground mb-6">What industry do you mentor in?</p>
             <div className="grid grid-cols-2 gap-3">
               {sectors.map(s => (
-                <button key={s} onClick={() => setSector(s)}
-                  className={`px-4 py-3 rounded-xl text-sm font-medium border-2 transition-all ${sector === s ? "border-primary bg-primary/5 text-primary" : "border-border text-foreground hover:border-primary/30"}`}>
+                <button key={s} onClick={() => {
+                  if (selectedSectors.includes(s)) {
+                    setSelectedSectors(prev => prev.filter(sec => sec !== s));
+                  } else {
+                    setSelectedSectors(prev => [...prev, s]);
+                  }
+                }}
+                  className={`px-4 py-3 rounded-xl text-sm font-medium border-2 transition-all ${selectedSectors.includes(s) ? "border-primary bg-primary/5 text-primary" : "border-border text-foreground hover:border-primary/30"}`}>
                   {s}
                 </button>
               ))}
@@ -201,7 +207,7 @@ const MentorSetup = () => {
             <button onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0}
               className="text-sm text-muted-foreground hover:text-foreground disabled:opacity-30">← Back</button>
             {step < 2 ? (
-              <button onClick={() => setStep(step + 1)} disabled={step === 0 && !sector}
+              <button onClick={() => setStep(step + 1)} disabled={step === 0 && selectedSectors.length === 0}
                 className="gradient-ocean text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-40 hover:opacity-90 transition-opacity">
                 Next →
               </button>
