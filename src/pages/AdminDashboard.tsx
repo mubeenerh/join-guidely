@@ -271,7 +271,7 @@ const AdminDashboard = () => {
                 {mentors.filter(m => verificationFilter === "all" ? true : verificationFilter === "pending" ? (!m.verified && !m.suspended) : verificationFilter === "verified" ? m.verified : m.suspended).length === 0 && (
                   <div className="bg-card rounded-xl border border-border p-8 text-center text-muted-foreground">No {verificationFilter === "all" ? "" : verificationFilter + " "}mentors found</div>
                 )}
-                {mentors.filter(m => verificationFilter === "all" ? true : verificationFilter === "pending" ? !m.verified : m.verified).map(m => {
+                {mentors.filter(m => verificationFilter === "all" ? true : verificationFilter === "pending" ? (!m.verified && !m.suspended) : verificationFilter === "verified" ? m.verified : m.suspended).map(m => {
                   const profile = users.find(u => u.user_id === m.user_id);
                   return (
                     <div key={m.user_id} className="bg-card rounded-xl border border-border p-6">
@@ -279,8 +279,8 @@ const AdminDashboard = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="text-lg font-semibold text-foreground">{profile?.first_name} {profile?.last_name}</h3>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.verified ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-                              {m.verified ? "Verified" : "Pending"}
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.suspended ? "bg-destructive/10 text-destructive" : m.verified ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                              {m.suspended ? "Suspended" : m.verified ? "Verified" : "Pending"}
                             </span>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                               {m.available ? "Available" : "Unavailable"}
