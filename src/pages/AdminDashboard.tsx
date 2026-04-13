@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, Users, Calendar, CheckCircle, BarChart3, LogOut, UserCheck, UserX, Eye } from "lucide-react";
+import { ShieldCheck, Users, Calendar, CheckCircle, BarChart3, LogOut, UserCheck, UserX, Eye, MessageSquare } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { useNavigate } from "react-router-dom";
 import {
@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-type TabKey = "overview" | "users" | "sessions" | "verification";
-type VerificationFilter = "all" | "pending" | "verified";
+type TabKey = "overview" | "users" | "sessions" | "verification" | "appeals";
+type VerificationFilter = "all" | "pending" | "verified" | "suspended";
 
 interface UserProfile {
   user_id: string;
@@ -32,10 +32,21 @@ interface MentorProfile {
   bio: string;
   qualifications: string[] | null;
   certifications: string[] | null;
+  achievements: string[] | null;
   available: boolean;
   rating: number | null;
   sessions_count: number | null;
   verified: boolean;
+  suspended: boolean;
+}
+
+interface AppealRow {
+  id: string;
+  mentor_id: string;
+  reason: string;
+  admin_response: string | null;
+  status: string;
+  created_at: string;
 }
 
 interface SessionRow {
@@ -56,6 +67,8 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [mentors, setMentors] = useState<MentorProfile[]>([]);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
+  const [appeals, setAppeals] = useState<AppealRow[]>([]);
+  const [appealResponses, setAppealResponses] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [verificationFilter, setVerificationFilter] = useState<VerificationFilter>("all");
 
@@ -70,14 +83,16 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [usersRes, mentorsRes, sessionsRes] = await Promise.all([
+    const [usersRes, mentorsRes, sessionsRes, appealsRes] = await Promise.all([
       supabase.from("profiles").select("user_id, first_name, last_name, role, created_at").order("created_at", { ascending: false }),
-      supabase.from("mentor_profiles").select("user_id, sector, bio, qualifications, certifications, available, rating, sessions_count, verified"),
+      supabase.from("mentor_profiles").select("user_id, sector, bio, qualifications, certifications, achievements, available, rating, sessions_count, verified, suspended"),
       supabase.from("sessions").select("id, mentor_id, mentee_id, scheduled_date, start_time, end_time, status").order("scheduled_date", { ascending: false }),
+      supabase.from("mentor_appeals").select("*").order("created_at", { ascending: false }),
     ]);
     setUsers(usersRes.data || []);
     setMentors(mentorsRes.data || []);
     setSessions(sessionsRes.data || []);
+    setAppeals(appealsRes.data || []);
     setLoading(false);
   };
 
@@ -130,6 +145,7 @@ const AdminDashboard = () => {
     { key: "users", label: "Users", icon: <Users className="w-4 h-4" /> },
     { key: "sessions", label: "Sessions", icon: <Calendar className="w-4 h-4" /> },
     { key: "verification", label: "Mentor Verification", icon: <CheckCircle className="w-4 h-4" /> },
+    { key: "appeals", label: `Appeals (${appeals.filter(a => a.status === "pending").length})`, icon: <MessageSquare className="w-4 h-4" /> },
   ];
 
   const getUserName = (userId: string) => {
@@ -293,17 +309,17 @@ const AdminDashboard = () => {
             {tab === "verification" && (
               <div className="space-y-4">
                 <div className="flex gap-2">
-                  {(["all", "pending", "verified"] as VerificationFilter[]).map(f => (
+                  {(["all", "pending", "verified", "suspended"] as VerificationFilter[]).map(f => (
                     <button key={f} onClick={() => setVerificationFilter(f)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${verificationFilter === f ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
-                      {f} ({f === "all" ? mentors.length : f === "pending" ? mentors.filter(m => !m.verified).length : mentors.filter(m => m.verified).length})
+                      {f} ({f === "all" ? mentors.length : f === "pending" ? mentors.filter(m => !m.verified && !m.suspended).length : f === "verified" ? mentors.filter(m => m.verified).length : mentors.filter(m => m.suspended).length})
                     </button>
                   ))}
                 </div>
-                {mentors.filter(m => verificationFilter === "all" ? true : verificationFilter === "pending" ? !m.verified : m.verified).length === 0 && (
+                {mentors.filter(m => verificationFilter === "all" ? true : verificationFilter === "pending" ? (!m.verified && !m.suspended) : verificationFilter === "verified" ? m.verified : m.suspended).length === 0 && (
                   <div className="bg-card rounded-xl border border-border p-8 text-center text-muted-foreground">No {verificationFilter === "all" ? "" : verificationFilter + " "}mentors found</div>
                 )}
-                {mentors.filter(m => verificationFilter === "all" ? true : verificationFilter === "pending" ? !m.verified : m.verified).map(m => {
+                {mentors.filter(m => verificationFilter === "all" ? true : verificationFilter === "pending" ? (!m.verified && !m.suspended) : verificationFilter === "verified" ? m.verified : m.suspended).map(m => {
                   const profile = users.find(u => u.user_id === m.user_id);
                   return (
                     <div key={m.user_id} className="bg-card rounded-xl border border-border p-6">
@@ -311,8 +327,8 @@ const AdminDashboard = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="text-lg font-semibold text-foreground">{profile?.first_name} {profile?.last_name}</h3>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.verified ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-                              {m.verified ? "Verified" : "Pending"}
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.suspended ? "bg-destructive/10 text-destructive" : m.verified ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                              {m.suspended ? "Suspended" : m.verified ? "Verified" : "Pending"}
                             </span>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.available ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                               {m.available ? "Available" : "Unavailable"}
@@ -327,34 +343,73 @@ const AdminDashboard = () => {
                             <span>📜 {m.certifications?.length ?? 0} certifications</span>
                           </div>
                           {m.qualifications && m.qualifications.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-3">
-                              {m.qualifications.map((q, i) => (
-                                <span key={i} className="bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs">{q}</span>
-                              ))}
+                            <div className="mt-3">
+                              <p className="text-xs font-medium text-muted-foreground mb-1.5">Qualifications</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {m.qualifications.map((q, i) => (
+                                  <span key={i} className="bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs">{q}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {m.certifications && m.certifications.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-xs font-medium text-muted-foreground mb-1.5">Certifications</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {m.certifications.map((c, i) => {
+                                  const urlMatch = c.match(/\((https?:\/\/[^)]+)\)/);
+                                  return (
+                                    <span key={i} className="bg-primary/10 text-primary px-2 py-1 rounded text-xs">
+                                      {urlMatch ? (
+                                        <a href={urlMatch[1]} target="_blank" rel="noopener noreferrer" className="underline">{c.replace(` (${urlMatch[1]})`, '')}</a>
+                                      ) : c}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          {m.achievements && m.achievements.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-xs font-medium text-muted-foreground mb-1.5">Achievements</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {m.achievements.map((a, i) => (
+                                  <span key={i} className="bg-accent/10 text-accent-foreground px-2 py-1 rounded text-xs">{a}</span>
+                                ))}
+                              </div>
                             </div>
                           )}
                         </div>
                         <div className="flex gap-2 shrink-0">
                           <button
                             onClick={async () => {
-                              const { error } = await supabase.from("mentor_profiles").update({ verified: true }).eq("user_id", m.user_id);
+                              const { error } = await supabase.from("mentor_profiles").update({ verified: true, suspended: false }).eq("user_id", m.user_id);
                               if (!error) {
                                 toast({ title: "Mentor verified", description: `${profile?.first_name} ${profile?.last_name} is now visible to mentees.` });
                                 fetchData();
                               }
                             }}
-                            disabled={m.verified}
-                            className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${m.verified ? "bg-green-100 text-green-700 opacity-60 cursor-not-allowed" : "bg-green-50 text-green-700 hover:bg-green-100"}`}>
-                            <UserCheck className="w-3.5 h-3.5" /> {m.verified ? "Verified" : "Verify"}
+                            disabled={m.verified && !m.suspended}
+                            className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${m.verified && !m.suspended ? "bg-green-100 text-green-700 opacity-60 cursor-not-allowed" : "bg-green-50 text-green-700 hover:bg-green-100"}`}>
+                            <UserCheck className="w-3.5 h-3.5" /> {m.verified && !m.suspended ? "Verified" : m.suspended ? "Unsuspend" : "Verify"}
                           </button>
                           <button
+<<<<<<< HEAD
                             onClick={() => {
                               setSelectedMentor(m);
                               setSuspendReason("");
                               setSuspendModalOpen(true);
+=======
+                            onClick={async () => {
+                              const { error } = await supabase.from("mentor_profiles").update({ verified: false, suspended: true }).eq("user_id", m.user_id);
+                              if (!error) {
+                                toast({ title: "Mentor suspended", description: `${profile?.first_name} ${profile?.last_name} has been suspended.` });
+                                fetchData();
+                              }
+>>>>>>> 2ead5983c9c66718ce2b6720226e88119622daa9
                             }}
-                            disabled={!m.verified}
-                            className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${!m.verified ? "bg-destructive/10 text-destructive opacity-60 cursor-not-allowed" : "bg-destructive/10 text-destructive hover:bg-destructive/20"}`}>
+                            disabled={m.suspended}
+                            className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${m.suspended ? "bg-destructive/10 text-destructive opacity-60 cursor-not-allowed" : "bg-destructive/10 text-destructive hover:bg-destructive/20"}`}>
                             <UserX className="w-3.5 h-3.5" /> Suspend
                           </button>
                         </div>
@@ -362,6 +417,63 @@ const AdminDashboard = () => {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Appeals */}
+            {tab === "appeals" && (
+              <div className="space-y-4">
+                {appeals.length === 0 ? (
+                  <div className="bg-card rounded-xl border border-border p-8 text-center text-muted-foreground">No appeals submitted</div>
+                ) : (
+                  appeals.map(a => {
+                    const mentorName = getUserName(a.mentor_id);
+                    return (
+                      <div key={a.id} className="bg-card rounded-xl border border-border p-6">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="text-base font-semibold text-foreground">{mentorName}</h3>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${a.status === "pending" ? "bg-amber-100 text-amber-700" : a.status === "responded" ? "bg-primary/10 text-primary" : "bg-green-100 text-green-700"}`}>
+                            {a.status}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <p className="text-sm text-foreground mb-3"><strong>Appeal:</strong> {a.reason}</p>
+                        {a.admin_response && (
+                          <div className="bg-muted rounded-lg p-3 mb-3">
+                            <p className="text-sm text-foreground"><strong>Your response:</strong> {a.admin_response}</p>
+                          </div>
+                        )}
+                        {a.status === "pending" && (
+                          <div className="flex gap-2 mt-2">
+                            <input
+                              type="text"
+                              placeholder="Tell the mentor what to do..."
+                              value={appealResponses[a.id] || ""}
+                              onChange={e => setAppealResponses(prev => ({ ...prev, [a.id]: e.target.value }))}
+                              className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                            <button
+                              onClick={async () => {
+                                const response = appealResponses[a.id]?.trim();
+                                if (!response) return;
+                                const { error } = await supabase.from("mentor_appeals").update({ admin_response: response, status: "responded" }).eq("id", a.id);
+                                if (!error) {
+                                  toast({ title: "Response sent", description: "The mentor can now see your response." });
+                                  setAppealResponses(prev => ({ ...prev, [a.id]: "" }));
+                                  fetchData();
+                                }
+                              }}
+                              disabled={!appealResponses[a.id]?.trim()}
+                              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Respond
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             )}
           </>
@@ -408,4 +520,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-

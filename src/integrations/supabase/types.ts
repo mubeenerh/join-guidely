@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      mentor_appeals: {
+        Row: {
+          admin_response: string | null
+          created_at: string
+          id: string
+          mentor_id: string
+          reason: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_response?: string | null
+          created_at?: string
+          id?: string
+          mentor_id: string
+          reason: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_response?: string | null
+          created_at?: string
+          id?: string
+          mentor_id?: string
+          reason?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mentor_availability: {
         Row: {
           created_at: string
@@ -53,6 +83,7 @@ export type Database = {
           rating: number | null
           sector: string
           sessions_count: number | null
+          suspended: boolean
           updated_at: string
           user_id: string
           verified: boolean
@@ -68,6 +99,7 @@ export type Database = {
           rating?: number | null
           sector?: string
           sessions_count?: number | null
+          suspended?: boolean
           updated_at?: string
           user_id: string
           verified?: boolean
@@ -83,6 +115,7 @@ export type Database = {
           rating?: number | null
           sector?: string
           sessions_count?: number | null
+          suspended?: boolean
           updated_at?: string
           user_id?: string
           verified?: boolean

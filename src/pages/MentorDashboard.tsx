@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import SessionsList from "@/components/SessionsList";
-import { Bell, User, Calendar, Users, TrendingUp, Clock, CheckCircle, XCircle, MessageSquare, LogOut } from "lucide-react";
+import { Bell, User, Calendar, Users, TrendingUp, Clock, CheckCircle, XCircle, MessageSquare, LogOut, AlertTriangle, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 import { Link } from "react-router-dom";
 
@@ -17,12 +18,63 @@ interface MenteeRequest {
   mentee_profile?: { first_name: string; last_name: string };
 }
 
+interface Appeal {
+  id: string;
+  reason: string;
+  admin_response: string | null;
+  status: string;
+  created_at: string;
+}
+
 const MentorDashboard = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [tab, setTab] = useState<"requests" | "schedule" | "impact">("requests");
   const [requests, setRequests] = useState<MenteeRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSuspended, setIsSuspended] = useState(false);
+  const [appeals, setAppeals] = useState<Appeal[]>([]);
+  const [appealText, setAppealText] = useState("");
+  const [submittingAppeal, setSubmittingAppeal] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchMentorStatus = async () => {
+      const { data } = await supabase
+        .from("mentor_profiles")
+        .select("suspended")
+        .eq("user_id", user.id)
+        .single();
+      setIsSuspended(data?.suspended ?? false);
+    };
+    const fetchAppeals = async () => {
+      const { data } = await supabase
+        .from("mentor_appeals")
+        .select("*")
+        .eq("mentor_id", user.id)
+        .order("created_at", { ascending: false });
+      setAppeals(data || []);
+    };
+    fetchMentorStatus();
+    fetchAppeals();
+  }, [user]);
+
+  const submitAppeal = async () => {
+    if (!user || !appealText.trim()) return;
+    setSubmittingAppeal(true);
+    const { error } = await supabase.from("mentor_appeals").insert({
+      mentor_id: user.id,
+      reason: appealText.trim(),
+    });
+    if (!error) {
+      toast({ title: "Appeal submitted", description: "The admin will review your appeal." });
+      setAppealText("");
+      const { data } = await supabase.from("mentor_appeals").select("*").eq("mentor_id", user.id).order("created_at", { ascending: false });
+      setAppeals(data || []);
+    }
+    setSubmittingAppeal(false);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -65,7 +117,7 @@ const MentorDashboard = () => {
             <span className="font-bold text-foreground hidden sm:block">GUIDELY</span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link to="/mentor/setup" className="text-sm text-muted-foreground hover:text-foreground">Edit Profile</Link>
+            <Link to="/mentor/edit-profile" className="text-sm text-muted-foreground hover:text-foreground">Edit Profile</Link>
             <button onClick={() => { signOut(); navigate("/"); }} className="text-muted-foreground hover:text-foreground">
               <LogOut className="w-5 h-5" />
             </button>
@@ -81,6 +133,64 @@ const MentorDashboard = () => {
           Welcome, {profile?.first_name || "Mentor"}! 🎓
         </h1>
         <p className="text-muted-foreground mb-8">Manage your mentees and track your impact.</p>
+
+        {/* Suspension Banner */}
+        {isSuspended && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-destructive/10 border border-destructive/30 rounded-2xl p-6 mb-8">
+            <div className="flex items-start gap-3 mb-4">
+              <AlertTriangle className="w-6 h-6 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-lg font-semibold text-destructive">Account Suspended</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Your account has been suspended by an admin. You are currently not visible to mentees. 
+                  You can submit an appeal below to request reinstatement.
+                </p>
+              </div>
+            </div>
+
+            {/* Appeal Form */}
+            <div className="bg-card rounded-xl border border-border p-4 mb-4">
+              <label className="text-sm font-medium text-foreground mb-2 block">Submit an Appeal</label>
+              <textarea
+                value={appealText}
+                onChange={e => setAppealText(e.target.value)}
+                placeholder="Explain why you believe your account should be reinstated..."
+                className="w-full rounded-lg border border-border bg-background p-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px] resize-none"
+              />
+              <button
+                onClick={submitAppeal}
+                disabled={!appealText.trim() || submittingAppeal}
+                className="mt-2 flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Send className="w-4 h-4" /> {submittingAppeal ? "Submitting..." : "Submit Appeal"}
+              </button>
+            </div>
+
+            {/* Previous Appeals */}
+            {appeals.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-foreground">Your Appeals</h4>
+                {appeals.map(a => (
+                  <div key={a.id} className="bg-card rounded-xl border border-border p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${a.status === "pending" ? "bg-amber-100 text-amber-700" : a.status === "responded" ? "bg-primary/10 text-primary" : "bg-green-100 text-green-700"}`}>
+                        {a.status}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <p className="text-sm text-foreground mb-2"><strong>You:</strong> {a.reason}</p>
+                    {a.admin_response && (
+                      <div className="bg-muted rounded-lg p-3 mt-2">
+                        <p className="text-sm text-foreground"><strong>Admin:</strong> {a.admin_response}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
