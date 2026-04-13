@@ -5,6 +5,15 @@ import { useToast } from "@/hooks/use-toast";
 import { ShieldCheck, Users, Calendar, CheckCircle, BarChart3, LogOut, UserCheck, UserX, Eye } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 type TabKey = "overview" | "users" | "sessions" | "verification";
 type VerificationFilter = "all" | "pending" | "verified";
@@ -40,7 +49,7 @@ interface SessionRow {
 }
 
 const AdminDashboard = () => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [tab, setTab] = useState<TabKey>("overview");
@@ -49,6 +58,11 @@ const AdminDashboard = () => {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [verificationFilter, setVerificationFilter] = useState<VerificationFilter>("all");
+
+  const [suspendModalOpen, setSuspendModalOpen] = useState(false);
+  const [selectedMentor, setSelectedMentor] = useState<MentorProfile | null>(null);
+  const [suspendReason, setSuspendReason] = useState("");
+  const [suspending, setSuspending] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -65,6 +79,40 @@ const AdminDashboard = () => {
     setMentors(mentorsRes.data || []);
     setSessions(sessionsRes.data || []);
     setLoading(false);
+  };
+
+  const handleSuspendMentor = async () => {
+    if (!selectedMentor) return;
+    if (!suspendReason.trim()) {
+      toast({ title: "Error", description: "Please provide a reason for suspension.", variant: "destructive" });
+      return;
+    }
+    setSuspending(true);
+
+    const { error: suspendError } = await supabase.from("mentor_profiles").update({ verified: false }).eq("user_id", selectedMentor.user_id);
+    
+    if (suspendError) {
+      toast({ title: "Error", description: "Failed to suspend mentor.", variant: "destructive" });
+      setSuspending(false);
+      return;
+    }
+
+    if (user?.id) {
+      await supabase.from("messages").insert({
+        sender_id: user.id,
+        receiver_id: selectedMentor.user_id,
+        content: `Your mentor account has been suspended by an administrator. Reason: ${suspendReason}`
+      });
+    }
+
+    const profile = users.find(u => u.user_id === selectedMentor.user_id);
+    toast({ title: "Mentor suspended", description: `${profile?.first_name || ''} ${profile?.last_name || ''} is no longer visible to mentees.` });
+    
+    setSuspendModalOpen(false);
+    setSuspendReason("");
+    setSelectedMentor(null);
+    setSuspending(false);
+    fetchData();
   };
 
   const handleLogout = async () => {
@@ -300,12 +348,10 @@ const AdminDashboard = () => {
                             <UserCheck className="w-3.5 h-3.5" /> {m.verified ? "Verified" : "Verify"}
                           </button>
                           <button
-                            onClick={async () => {
-                              const { error } = await supabase.from("mentor_profiles").update({ verified: false }).eq("user_id", m.user_id);
-                              if (!error) {
-                                toast({ title: "Mentor suspended", description: `${profile?.first_name} ${profile?.last_name} is no longer visible to mentees.` });
-                                fetchData();
-                              }
+                            onClick={() => {
+                              setSelectedMentor(m);
+                              setSuspendReason("");
+                              setSuspendModalOpen(true);
                             }}
                             disabled={!m.verified}
                             className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${!m.verified ? "bg-destructive/10 text-destructive opacity-60 cursor-not-allowed" : "bg-destructive/10 text-destructive hover:bg-destructive/20"}`}>
@@ -321,6 +367,42 @@ const AdminDashboard = () => {
           </>
         )}
       </div>
+
+      <Dialog open={suspendModalOpen} onOpenChange={setSuspendModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suspend Mentor</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for suspending this mentor. This note will be sent as a message to them.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="my-2">
+            <Textarea
+              value={suspendReason}
+              onChange={(e) => setSuspendReason(e.target.value)}
+              placeholder="Reason for suspension..."
+              rows={4}
+              className="resize-none"
+            />
+          </div>
+          <DialogFooter>
+            <button
+              onClick={() => setSuspendModalOpen(false)}
+              className="px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm font-medium hover:bg-muted/80 transition-colors"
+              disabled={suspending}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSuspendMentor}
+              disabled={suspending}
+              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg text-sm font-medium hover:bg-destructive/90 transition-colors"
+            >
+              {suspending ? "Suspending..." : "Confirm Suspension"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
