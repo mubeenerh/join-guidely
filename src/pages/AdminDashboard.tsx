@@ -261,14 +261,14 @@ const AdminDashboard = () => {
             {tab === "verification" && (
               <div className="space-y-4">
                 <div className="flex gap-2">
-                  {(["all", "pending", "verified"] as VerificationFilter[]).map(f => (
+                  {(["all", "pending", "verified", "suspended"] as VerificationFilter[]).map(f => (
                     <button key={f} onClick={() => setVerificationFilter(f)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${verificationFilter === f ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
-                      {f} ({f === "all" ? mentors.length : f === "pending" ? mentors.filter(m => !m.verified).length : mentors.filter(m => m.verified).length})
+                      {f} ({f === "all" ? mentors.length : f === "pending" ? mentors.filter(m => !m.verified && !m.suspended).length : f === "verified" ? mentors.filter(m => m.verified).length : mentors.filter(m => m.suspended).length})
                     </button>
                   ))}
                 </div>
-                {mentors.filter(m => verificationFilter === "all" ? true : verificationFilter === "pending" ? !m.verified : m.verified).length === 0 && (
+                {mentors.filter(m => verificationFilter === "all" ? true : verificationFilter === "pending" ? (!m.verified && !m.suspended) : verificationFilter === "verified" ? m.verified : m.suspended).length === 0 && (
                   <div className="bg-card rounded-xl border border-border p-8 text-center text-muted-foreground">No {verificationFilter === "all" ? "" : verificationFilter + " "}mentors found</div>
                 )}
                 {mentors.filter(m => verificationFilter === "all" ? true : verificationFilter === "pending" ? !m.verified : m.verified).map(m => {
