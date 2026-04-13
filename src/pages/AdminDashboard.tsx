@@ -335,26 +335,26 @@ const AdminDashboard = () => {
                         <div className="flex gap-2 shrink-0">
                           <button
                             onClick={async () => {
-                              const { error } = await supabase.from("mentor_profiles").update({ verified: true }).eq("user_id", m.user_id);
+                              const { error } = await supabase.from("mentor_profiles").update({ verified: true, suspended: false }).eq("user_id", m.user_id);
                               if (!error) {
                                 toast({ title: "Mentor verified", description: `${profile?.first_name} ${profile?.last_name} is now visible to mentees.` });
                                 fetchData();
                               }
                             }}
-                            disabled={m.verified}
-                            className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${m.verified ? "bg-green-100 text-green-700 opacity-60 cursor-not-allowed" : "bg-green-50 text-green-700 hover:bg-green-100"}`}>
-                            <UserCheck className="w-3.5 h-3.5" /> {m.verified ? "Verified" : "Verify"}
+                            disabled={m.verified && !m.suspended}
+                            className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${m.verified && !m.suspended ? "bg-green-100 text-green-700 opacity-60 cursor-not-allowed" : "bg-green-50 text-green-700 hover:bg-green-100"}`}>
+                            <UserCheck className="w-3.5 h-3.5" /> {m.verified && !m.suspended ? "Verified" : m.suspended ? "Unsuspend" : "Verify"}
                           </button>
                           <button
                             onClick={async () => {
-                              const { error } = await supabase.from("mentor_profiles").update({ verified: false }).eq("user_id", m.user_id);
+                              const { error } = await supabase.from("mentor_profiles").update({ verified: false, suspended: true }).eq("user_id", m.user_id);
                               if (!error) {
-                                toast({ title: "Mentor suspended", description: `${profile?.first_name} ${profile?.last_name} is no longer visible to mentees.` });
+                                toast({ title: "Mentor suspended", description: `${profile?.first_name} ${profile?.last_name} has been suspended.` });
                                 fetchData();
                               }
                             }}
-                            disabled={!m.verified}
-                            className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${!m.verified ? "bg-destructive/10 text-destructive opacity-60 cursor-not-allowed" : "bg-destructive/10 text-destructive hover:bg-destructive/20"}`}>
+                            disabled={m.suspended}
+                            className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${m.suspended ? "bg-destructive/10 text-destructive opacity-60 cursor-not-allowed" : "bg-destructive/10 text-destructive hover:bg-destructive/20"}`}>
                             <UserX className="w-3.5 h-3.5" /> Suspend
                           </button>
                         </div>
@@ -362,6 +362,63 @@ const AdminDashboard = () => {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Appeals */}
+            {tab === "appeals" && (
+              <div className="space-y-4">
+                {appeals.length === 0 ? (
+                  <div className="bg-card rounded-xl border border-border p-8 text-center text-muted-foreground">No appeals submitted</div>
+                ) : (
+                  appeals.map(a => {
+                    const mentorName = getUserName(a.mentor_id);
+                    return (
+                      <div key={a.id} className="bg-card rounded-xl border border-border p-6">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="text-base font-semibold text-foreground">{mentorName}</h3>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${a.status === "pending" ? "bg-amber-100 text-amber-700" : a.status === "responded" ? "bg-primary/10 text-primary" : "bg-green-100 text-green-700"}`}>
+                            {a.status}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <p className="text-sm text-foreground mb-3"><strong>Appeal:</strong> {a.reason}</p>
+                        {a.admin_response && (
+                          <div className="bg-muted rounded-lg p-3 mb-3">
+                            <p className="text-sm text-foreground"><strong>Your response:</strong> {a.admin_response}</p>
+                          </div>
+                        )}
+                        {a.status === "pending" && (
+                          <div className="flex gap-2 mt-2">
+                            <input
+                              type="text"
+                              placeholder="Tell the mentor what to do..."
+                              value={appealResponses[a.id] || ""}
+                              onChange={e => setAppealResponses(prev => ({ ...prev, [a.id]: e.target.value }))}
+                              className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                            <button
+                              onClick={async () => {
+                                const response = appealResponses[a.id]?.trim();
+                                if (!response) return;
+                                const { error } = await supabase.from("mentor_appeals").update({ admin_response: response, status: "responded" }).eq("id", a.id);
+                                if (!error) {
+                                  toast({ title: "Response sent", description: "The mentor can now see your response." });
+                                  setAppealResponses(prev => ({ ...prev, [a.id]: "" }));
+                                  fetchData();
+                                }
+                              }}
+                              disabled={!appealResponses[a.id]?.trim()}
+                              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Respond
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             )}
           </>
@@ -372,4 +429,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-
