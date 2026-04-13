@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, Users, Calendar, CheckCircle, BarChart3, LogOut, UserCheck, UserX, Eye } from "lucide-react";
+import { ShieldCheck, Users, Calendar, CheckCircle, BarChart3, LogOut, UserCheck, UserX, Eye, MessageSquare } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { useNavigate } from "react-router-dom";
 
-type TabKey = "overview" | "users" | "sessions" | "verification";
-type VerificationFilter = "all" | "pending" | "verified";
+type TabKey = "overview" | "users" | "sessions" | "verification" | "appeals";
+type VerificationFilter = "all" | "pending" | "verified" | "suspended";
 
 interface UserProfile {
   user_id: string;
@@ -28,6 +28,16 @@ interface MentorProfile {
   rating: number | null;
   sessions_count: number | null;
   verified: boolean;
+  suspended: boolean;
+}
+
+interface AppealRow {
+  id: string;
+  mentor_id: string;
+  reason: string;
+  admin_response: string | null;
+  status: string;
+  created_at: string;
 }
 
 interface SessionRow {
@@ -48,6 +58,8 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [mentors, setMentors] = useState<MentorProfile[]>([]);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
+  const [appeals, setAppeals] = useState<AppealRow[]>([]);
+  const [appealResponses, setAppealResponses] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [verificationFilter, setVerificationFilter] = useState<VerificationFilter>("all");
 
@@ -57,14 +69,16 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [usersRes, mentorsRes, sessionsRes] = await Promise.all([
+    const [usersRes, mentorsRes, sessionsRes, appealsRes] = await Promise.all([
       supabase.from("profiles").select("user_id, first_name, last_name, role, created_at").order("created_at", { ascending: false }),
-      supabase.from("mentor_profiles").select("user_id, sector, bio, qualifications, certifications, achievements, available, rating, sessions_count, verified"),
+      supabase.from("mentor_profiles").select("user_id, sector, bio, qualifications, certifications, achievements, available, rating, sessions_count, verified, suspended"),
       supabase.from("sessions").select("id, mentor_id, mentee_id, scheduled_date, start_time, end_time, status").order("scheduled_date", { ascending: false }),
+      supabase.from("mentor_appeals").select("*").order("created_at", { ascending: false }),
     ]);
     setUsers(usersRes.data || []);
     setMentors(mentorsRes.data || []);
     setSessions(sessionsRes.data || []);
+    setAppeals(appealsRes.data || []);
     setLoading(false);
   };
 
@@ -83,6 +97,7 @@ const AdminDashboard = () => {
     { key: "users", label: "Users", icon: <Users className="w-4 h-4" /> },
     { key: "sessions", label: "Sessions", icon: <Calendar className="w-4 h-4" /> },
     { key: "verification", label: "Mentor Verification", icon: <CheckCircle className="w-4 h-4" /> },
+    { key: "appeals", label: `Appeals (${appeals.filter(a => a.status === "pending").length})`, icon: <MessageSquare className="w-4 h-4" /> },
   ];
 
   const getUserName = (userId: string) => {
