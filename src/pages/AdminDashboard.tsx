@@ -59,7 +59,7 @@ const AdminDashboard = () => {
     setLoading(true);
     const [usersRes, mentorsRes, sessionsRes] = await Promise.all([
       supabase.from("profiles").select("user_id, first_name, last_name, role, created_at").order("created_at", { ascending: false }),
-      supabase.from("mentor_profiles").select("user_id, sector, bio, qualifications, certifications, available, rating, sessions_count, verified"),
+      supabase.from("mentor_profiles").select("user_id, sector, bio, qualifications, certifications, achievements, available, rating, sessions_count, verified"),
       supabase.from("sessions").select("id, mentor_id, mentee_id, scheduled_date, start_time, end_time, status").order("scheduled_date", { ascending: false }),
     ]);
     setUsers(usersRes.data || []);
