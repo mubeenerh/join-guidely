@@ -65,7 +65,7 @@ const MentorDashboard = () => {
             <span className="font-bold text-foreground hidden sm:block">GUIDELY</span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link to="/mentor/setup" className="text-sm text-muted-foreground hover:text-foreground">Edit Profile</Link>
+            <Link to="/mentor/edit-profile" className="text-sm text-muted-foreground hover:text-foreground">Edit Profile</Link>
             <button onClick={() => { signOut(); navigate("/"); }} className="text-muted-foreground hover:text-foreground">
               <LogOut className="w-5 h-5" />
             </button>

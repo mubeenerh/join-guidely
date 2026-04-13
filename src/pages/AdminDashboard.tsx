@@ -23,6 +23,7 @@ interface MentorProfile {
   bio: string;
   qualifications: string[] | null;
   certifications: string[] | null;
+  achievements: string[] | null;
   available: boolean;
   rating: number | null;
   sessions_count: number | null;
@@ -58,7 +59,7 @@ const AdminDashboard = () => {
     setLoading(true);
     const [usersRes, mentorsRes, sessionsRes] = await Promise.all([
       supabase.from("profiles").select("user_id, first_name, last_name, role, created_at").order("created_at", { ascending: false }),
-      supabase.from("mentor_profiles").select("user_id, sector, bio, qualifications, certifications, available, rating, sessions_count, verified"),
+      supabase.from("mentor_profiles").select("user_id, sector, bio, qualifications, certifications, achievements, available, rating, sessions_count, verified"),
       supabase.from("sessions").select("id, mentor_id, mentee_id, scheduled_date, start_time, end_time, status").order("scheduled_date", { ascending: false }),
     ]);
     setUsers(usersRes.data || []);
@@ -279,10 +280,40 @@ const AdminDashboard = () => {
                             <span>📜 {m.certifications?.length ?? 0} certifications</span>
                           </div>
                           {m.qualifications && m.qualifications.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-3">
-                              {m.qualifications.map((q, i) => (
-                                <span key={i} className="bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs">{q}</span>
-                              ))}
+                            <div className="mt-3">
+                              <p className="text-xs font-medium text-muted-foreground mb-1.5">Qualifications</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {m.qualifications.map((q, i) => (
+                                  <span key={i} className="bg-secondary text-secondary-foreground px-2 py-1 rounded text-xs">{q}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {m.certifications && m.certifications.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-xs font-medium text-muted-foreground mb-1.5">Certifications</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {m.certifications.map((c, i) => {
+                                  const urlMatch = c.match(/\((https?:\/\/[^)]+)\)/);
+                                  return (
+                                    <span key={i} className="bg-primary/10 text-primary px-2 py-1 rounded text-xs">
+                                      {urlMatch ? (
+                                        <a href={urlMatch[1]} target="_blank" rel="noopener noreferrer" className="underline">{c.replace(` (${urlMatch[1]})`, '')}</a>
+                                      ) : c}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          {m.achievements && m.achievements.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-xs font-medium text-muted-foreground mb-1.5">Achievements</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {m.achievements.map((a, i) => (
+                                  <span key={i} className="bg-accent/10 text-accent-foreground px-2 py-1 rounded text-xs">{a}</span>
+                                ))}
+                              </div>
                             </div>
                           )}
                         </div>

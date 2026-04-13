@@ -15,6 +15,7 @@ import SelectRole from "./pages/SelectRole";
 import MenteeOnboarding from "./pages/MenteeOnboarding";
 import MenteeDashboard from "./pages/MenteeDashboard";
 import MentorSetup from "./pages/MentorSetup";
+import MentorEditProfile from "./pages/MentorEditProfile";
 import MentorDashboard from "./pages/MentorDashboard";
 import Chat from "./pages/Chat";
 import BookSession from "./pages/BookSession";
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/mentee/dashboard" element={<ProtectedRoute><MenteeDashboard /></ProtectedRoute>} />
             <Route path="/mentor/setup" element={<ProtectedRoute><MentorSetup /></ProtectedRoute>} />
             <Route path="/mentor/dashboard" element={<ProtectedRoute><MentorDashboard /></ProtectedRoute>} />
+            <Route path="/mentor/edit-profile" element={<ProtectedRoute><MentorEditProfile /></ProtectedRoute>} />
             <Route path="/chat/:partnerId" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
             <Route path="/book/:mentorId" element={<ProtectedRoute><BookSession /></ProtectedRoute>} />
             <Route path="/admin/login" element={<AdminLogin />} />
