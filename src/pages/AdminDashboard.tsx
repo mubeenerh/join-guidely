@@ -23,6 +23,7 @@ interface MentorProfile {
   bio: string;
   qualifications: string[] | null;
   certifications: string[] | null;
+  achievements: string[] | null;
   available: boolean;
   rating: number | null;
   sessions_count: number | null;
