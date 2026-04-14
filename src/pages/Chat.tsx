@@ -57,29 +57,24 @@ const Chat = () => {
       .eq("read", false)
       .then(() => {});
 
-    // Real-time subscription
-    const channel = supabase
-      .channel("messages-" + partnerId)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "messages",
-      }, (payload) => {
-        const msg = payload.new as Message;
-        if (
-          (msg.sender_id === user.id && msg.receiver_id === partnerId) ||
-          (msg.sender_id === partnerId && msg.receiver_id === user.id)
-        ) {
-          setMessages(prev => [...prev, msg]);
-          // Mark as read if from partner
-          if (msg.sender_id === partnerId) {
-            supabase.from("messages").update({ read: true }).eq("id", msg.id).then(() => {});
-          }
-        }
-      })
-      .subscribe();
+    // Poll for new messages every 3 seconds
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${user.id})`)
+        .order("created_at", { ascending: true });
+      if (data) setMessages(data);
+      
+      // Mark unread as read
+      await supabase.from("messages")
+        .update({ read: true })
+        .eq("sender_id", partnerId)
+        .eq("receiver_id", user.id)
+        .eq("read", false);
+    }, 3000);
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { clearInterval(interval); };
   }, [user, partnerId]);
 
   useEffect(() => {
