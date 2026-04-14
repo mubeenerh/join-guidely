@@ -394,19 +394,10 @@ const AdminDashboard = () => {
                             <UserCheck className="w-3.5 h-3.5" /> {m.verified && !m.suspended ? "Verified" : m.suspended ? "Unsuspend" : "Verify"}
                           </button>
                           <button
-<<<<<<< HEAD
                             onClick={() => {
                               setSelectedMentor(m);
                               setSuspendReason("");
                               setSuspendModalOpen(true);
-=======
-                            onClick={async () => {
-                              const { error } = await supabase.from("mentor_profiles").update({ verified: false, suspended: true }).eq("user_id", m.user_id);
-                              if (!error) {
-                                toast({ title: "Mentor suspended", description: `${profile?.first_name} ${profile?.last_name} has been suspended.` });
-                                fetchData();
-                              }
->>>>>>> 2ead5983c9c66718ce2b6720226e88119622daa9
                             }}
                             disabled={m.suspended}
                             className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${m.suspended ? "bg-destructive/10 text-destructive opacity-60 cursor-not-allowed" : "bg-destructive/10 text-destructive hover:bg-destructive/20"}`}>
