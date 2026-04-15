@@ -194,17 +194,30 @@ const SessionsList = ({ role }: SessionsListProps) => {
           <h3 className="text-sm font-semibold text-foreground mb-3">Past Sessions</h3>
           <div className="space-y-3">
             {past.map(session => (
-              <div key={session.id} className="bg-card rounded-2xl border border-border p-5 opacity-60">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${session.status === "completed" ? "bg-secondary" : "bg-destructive/10"}`}>
-                    {session.status === "completed" ? <CheckCircle className="w-4 h-4 text-wave" /> : <XCircle className="w-4 h-4 text-destructive" />}
+              <div key={session.id} className="bg-card rounded-2xl border border-border p-5 opacity-80">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${session.status === "completed" ? "bg-secondary" : "bg-destructive/10"}`}>
+                      {session.status === "completed" ? <CheckCircle className="w-4 h-4 text-wave" /> : <XCircle className="w-4 h-4 text-destructive" />}
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-foreground text-sm">{session.partner_name}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(session.scheduled_date + "T00:00"), "MMM d")} · {session.start_time.slice(0, 5)} · {session.status}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-medium text-foreground text-sm">{session.partner_name}</h4>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(session.scheduled_date + "T00:00"), "MMM d")} · {session.start_time.slice(0, 5)} · {session.status}
-                    </p>
-                  </div>
+                  {role === "mentee" && session.status === "completed" && !reviewedSessionIds.has(session.id) && (
+                    <button
+                      onClick={() => { setReviewSession(session); setReviewRating(5); setReviewText(""); setReviewModalOpen(true); }}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-medium hover:bg-amber-100 transition-colors"
+                    >
+                      <Star className="w-3.5 h-3.5" /> Rate
+                    </button>
+                  )}
+                  {role === "mentee" && session.status === "completed" && reviewedSessionIds.has(session.id) && (
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground"><Star className="w-3.5 h-3.5 text-amber-500" /> Reviewed</span>
+                  )}
                 </div>
               </div>
             ))}
