@@ -2,10 +2,18 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
-import { Calendar, Clock, Video, XCircle, CheckCircle } from "lucide-react";
+import { Calendar, Clock, Video, XCircle, CheckCircle, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 interface SessionWithProfile {
   id: string;
@@ -29,6 +37,12 @@ const SessionsList = ({ role }: SessionsListProps) => {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<SessionWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reviewedSessionIds, setReviewedSessionIds] = useState<Set<string>>(new Set());
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewSession, setReviewSession] = useState<SessionWithProfile | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   const fetchSessions = async () => {
     if (!user) return;
@@ -51,13 +65,25 @@ const SessionsList = ({ role }: SessionsListProps) => {
         const p = profiles?.find(pr => pr.user_id === partnerId);
         return { ...s, partner_name: p ? `${p.first_name} ${p.last_name}` : "Unknown" };
       }));
+
+      // Fetch which sessions this mentee has already reviewed
+      if (role === "mentee") {
+        const sessionIds = data.map(s => s.id);
+        const { data: reviews } = await supabase
+          .from("mentor_reviews")
+          .select("session_id")
+          .eq("mentee_id", user.id)
+          .in("session_id", sessionIds);
+        if (reviews) {
+          setReviewedSessionIds(new Set(reviews.map(r => r.session_id)));
+        }
+      }
     }
     setLoading(false);
   };
 
   useEffect(() => { fetchSessions(); }, [user]);
 
-  // Realtime
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -73,6 +99,28 @@ const SessionsList = ({ role }: SessionsListProps) => {
     await supabase.from("sessions").update({ status }).eq("id", id);
     toast({ title: `Session ${status}` });
     fetchSessions();
+  };
+
+  const submitReview = async () => {
+    if (!user || !reviewSession) return;
+    setSubmittingReview(true);
+    const { error } = await supabase.from("mentor_reviews").insert({
+      mentor_id: reviewSession.mentor_id,
+      mentee_id: user.id,
+      session_id: reviewSession.id,
+      rating: reviewRating,
+      review: reviewText.trim() || null,
+    });
+    setSubmittingReview(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Review submitted", description: "Thank you for your feedback!" });
+      setReviewModalOpen(false);
+      setReviewText("");
+      setReviewRating(5);
+      fetchSessions();
+    }
   };
 
   const upcoming = sessions.filter(s => s.status === "scheduled");
@@ -93,6 +141,7 @@ const SessionsList = ({ role }: SessionsListProps) => {
   }
 
   return (
+    <>
     <div className="space-y-6">
       {upcoming.length > 0 && (
         <div>
@@ -146,17 +195,30 @@ const SessionsList = ({ role }: SessionsListProps) => {
           <h3 className="text-sm font-semibold text-foreground mb-3">Past Sessions</h3>
           <div className="space-y-3">
             {past.map(session => (
-              <div key={session.id} className="bg-card rounded-2xl border border-border p-5 opacity-60">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${session.status === "completed" ? "bg-secondary" : "bg-destructive/10"}`}>
-                    {session.status === "completed" ? <CheckCircle className="w-4 h-4 text-wave" /> : <XCircle className="w-4 h-4 text-destructive" />}
+              <div key={session.id} className="bg-card rounded-2xl border border-border p-5 opacity-80">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${session.status === "completed" ? "bg-secondary" : "bg-destructive/10"}`}>
+                      {session.status === "completed" ? <CheckCircle className="w-4 h-4 text-wave" /> : <XCircle className="w-4 h-4 text-destructive" />}
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-foreground text-sm">{session.partner_name}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(session.scheduled_date + "T00:00"), "MMM d")} · {session.start_time.slice(0, 5)} · {session.status}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-medium text-foreground text-sm">{session.partner_name}</h4>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(session.scheduled_date + "T00:00"), "MMM d")} · {session.start_time.slice(0, 5)} · {session.status}
-                    </p>
-                  </div>
+                  {role === "mentee" && session.status === "completed" && !reviewedSessionIds.has(session.id) && (
+                    <button
+                      onClick={() => { setReviewSession(session); setReviewRating(5); setReviewText(""); setReviewModalOpen(true); }}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-medium hover:bg-amber-100 transition-colors"
+                    >
+                      <Star className="w-3.5 h-3.5" /> Rate
+                    </button>
+                  )}
+                  {role === "mentee" && session.status === "completed" && reviewedSessionIds.has(session.id) && (
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground"><Star className="w-3.5 h-3.5 text-amber-500" /> Reviewed</span>
+                  )}
                 </div>
               </div>
             ))}
@@ -164,6 +226,46 @@ const SessionsList = ({ role }: SessionsListProps) => {
         </div>
       )}
     </div>
+
+      {/* Review Modal */}
+      <Dialog open={reviewModalOpen} onOpenChange={setReviewModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rate your session with {reviewSession?.partner_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Rating</p>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button key={star} onClick={() => setReviewRating(star)} className="focus:outline-none">
+                    <Star className={`w-7 h-7 transition-colors ${star <= reviewRating ? "text-amber-500 fill-amber-500" : "text-muted-foreground"}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Review (optional)</p>
+              <Textarea
+                value={reviewText}
+                onChange={e => setReviewText(e.target.value)}
+                placeholder="Share your experience..."
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <button onClick={() => setReviewModalOpen(false)} className="px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm font-medium hover:bg-muted/80" disabled={submittingReview}>
+              Cancel
+            </button>
+            <button onClick={submitReview} disabled={submittingReview} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
+              {submittingReview ? "Submitting..." : "Submit Review"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

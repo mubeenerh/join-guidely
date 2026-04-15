@@ -122,6 +122,44 @@ export type Database = {
         }
         Relationships: []
       }
+      mentor_reviews: {
+        Row: {
+          created_at: string
+          id: string
+          mentee_id: string
+          mentor_id: string
+          rating: number
+          review: string | null
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mentee_id: string
+          mentor_id: string
+          rating: number
+          review?: string | null
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mentee_id?: string
+          mentor_id?: string
+          rating?: number
+          review?: string | null
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentor_reviews_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentorship_requests: {
         Row: {
           created_at: string

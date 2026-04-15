@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, Users, Calendar, CheckCircle, BarChart3, LogOut, UserCheck, UserX, Eye, MessageSquare } from "lucide-react";
+import { ShieldCheck, Users, Calendar, CheckCircle, BarChart3, LogOut, UserCheck, UserX, Eye, MessageSquare, Star } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { useNavigate } from "react-router-dom";
 import {
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-type TabKey = "overview" | "users" | "sessions" | "verification" | "appeals";
+type TabKey = "overview" | "users" | "sessions" | "verification" | "appeals" | "reviews";
 type VerificationFilter = "all" | "pending" | "verified" | "suspended";
 
 interface UserProfile {
@@ -59,6 +59,16 @@ interface SessionRow {
   status: string;
 }
 
+interface ReviewRow {
+  id: string;
+  mentor_id: string;
+  mentee_id: string;
+  session_id: string;
+  rating: number;
+  review: string | null;
+  created_at: string;
+}
+
 const AdminDashboard = () => {
   const { signOut, user } = useAuth();
   const { toast } = useToast();
@@ -68,6 +78,7 @@ const AdminDashboard = () => {
   const [mentors, setMentors] = useState<MentorProfile[]>([]);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [appeals, setAppeals] = useState<AppealRow[]>([]);
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [appealResponses, setAppealResponses] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [verificationFilter, setVerificationFilter] = useState<VerificationFilter>("all");
@@ -83,16 +94,18 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [usersRes, mentorsRes, sessionsRes, appealsRes] = await Promise.all([
+    const [usersRes, mentorsRes, sessionsRes, appealsRes, reviewsRes] = await Promise.all([
       supabase.from("profiles").select("user_id, first_name, last_name, role, created_at").order("created_at", { ascending: false }),
       supabase.from("mentor_profiles").select("user_id, sector, bio, qualifications, certifications, achievements, available, rating, sessions_count, verified, suspended"),
       supabase.from("sessions").select("id, mentor_id, mentee_id, scheduled_date, start_time, end_time, status").order("scheduled_date", { ascending: false }),
       supabase.from("mentor_appeals").select("*").order("created_at", { ascending: false }),
+      supabase.from("mentor_reviews").select("*").order("created_at", { ascending: false }),
     ]);
     setUsers(usersRes.data || []);
     setMentors(mentorsRes.data || []);
     setSessions(sessionsRes.data || []);
     setAppeals(appealsRes.data || []);
+    setReviews(reviewsRes.data || []);
     setLoading(false);
   };
 
@@ -146,6 +159,7 @@ const AdminDashboard = () => {
     { key: "sessions", label: "Sessions", icon: <Calendar className="w-4 h-4" /> },
     { key: "verification", label: "Mentor Verification", icon: <CheckCircle className="w-4 h-4" /> },
     { key: "appeals", label: `Appeals (${appeals.filter(a => a.status === "pending").length})`, icon: <MessageSquare className="w-4 h-4" /> },
+    { key: "reviews", label: `Reviews (${reviews.length})`, icon: <Star className="w-4 h-4" /> },
   ];
 
   const getUserName = (userId: string) => {
@@ -464,6 +478,34 @@ const AdminDashboard = () => {
                       </div>
                     );
                   })
+                )}
+              </div>
+            )}
+
+            {/* Reviews */}
+            {tab === "reviews" && (
+              <div className="space-y-4">
+                {reviews.length === 0 ? (
+                  <div className="bg-card rounded-xl border border-border p-8 text-center text-muted-foreground">No reviews yet</div>
+                ) : (
+                  reviews.map(r => (
+                    <div key={r.id} className="bg-card rounded-xl border border-border p-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-sm font-semibold text-foreground">
+                            {getUserName(r.mentee_id)} → {getUserName(r.mentor_id)}
+                          </h3>
+                          <div className="flex gap-0.5">
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <Star key={s} className={`w-4 h-4 ${s <= r.rating ? "text-amber-500 fill-amber-500" : "text-muted-foreground"}`} />
+                            ))}
+                          </div>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
+                      </div>
+                      {r.review && <p className="text-sm text-muted-foreground">{r.review}</p>}
+                    </div>
+                  ))
                 )}
               </div>
             )}
