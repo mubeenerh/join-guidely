@@ -481,6 +481,34 @@ const AdminDashboard = () => {
                 )}
               </div>
             )}
+
+            {/* Reviews */}
+            {tab === "reviews" && (
+              <div className="space-y-4">
+                {reviews.length === 0 ? (
+                  <div className="bg-card rounded-xl border border-border p-8 text-center text-muted-foreground">No reviews yet</div>
+                ) : (
+                  reviews.map(r => (
+                    <div key={r.id} className="bg-card rounded-xl border border-border p-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-sm font-semibold text-foreground">
+                            {getUserName(r.mentee_id)} → {getUserName(r.mentor_id)}
+                          </h3>
+                          <div className="flex gap-0.5">
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <Star key={s} className={`w-4 h-4 ${s <= r.rating ? "text-amber-500 fill-amber-500" : "text-muted-foreground"}`} />
+                            ))}
+                          </div>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
+                      </div>
+                      {r.review && <p className="text-sm text-muted-foreground">{r.review}</p>}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </>
         )}
       </div>
