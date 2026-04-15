@@ -78,6 +78,7 @@ const AdminDashboard = () => {
   const [mentors, setMentors] = useState<MentorProfile[]>([]);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [appeals, setAppeals] = useState<AppealRow[]>([]);
+  const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [appealResponses, setAppealResponses] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [verificationFilter, setVerificationFilter] = useState<VerificationFilter>("all");
