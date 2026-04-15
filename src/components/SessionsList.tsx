@@ -141,7 +141,7 @@ const SessionsList = ({ role }: SessionsListProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <>
       {upcoming.length > 0 && (
         <div>
           <h3 className="text-sm font-semibold text-foreground mb-3">Upcoming</h3>
