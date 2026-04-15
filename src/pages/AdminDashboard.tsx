@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-type TabKey = "overview" | "users" | "sessions" | "verification" | "appeals";
+type TabKey = "overview" | "users" | "sessions" | "verification" | "appeals" | "reviews";
 type VerificationFilter = "all" | "pending" | "verified" | "suspended";
 
 interface UserProfile {
@@ -57,6 +57,16 @@ interface SessionRow {
   start_time: string;
   end_time: string;
   status: string;
+}
+
+interface ReviewRow {
+  id: string;
+  mentor_id: string;
+  mentee_id: string;
+  session_id: string;
+  rating: number;
+  review: string | null;
+  created_at: string;
 }
 
 const AdminDashboard = () => {
