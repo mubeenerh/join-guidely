@@ -375,7 +375,7 @@ const AdminDashboard = () => {
                                   return (
                                     <span key={i} className="bg-primary/10 text-primary px-2 py-1 rounded text-xs">
                                       {urlMatch ? (
-                                        <a href={urlMatch[1]} target="_blank" rel="noopener noreferrer" className="underline">{c.replace(` (${urlMatch[1]})`, '')}</a>
+                                        <a href={urlMatch[1]} target="_blank" rel="noopener noreferrer" className="underline cursor-pointer hover:opacity-80" onClick={(e) => { e.stopPropagation(); window.open(urlMatch[1], '_blank'); }}>{c.replace(` (${urlMatch[1]})`, '')}</a>
                                       ) : c}
                                     </span>
                                   );
