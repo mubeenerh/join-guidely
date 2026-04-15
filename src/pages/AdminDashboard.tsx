@@ -159,6 +159,7 @@ const AdminDashboard = () => {
     { key: "sessions", label: "Sessions", icon: <Calendar className="w-4 h-4" /> },
     { key: "verification", label: "Mentor Verification", icon: <CheckCircle className="w-4 h-4" /> },
     { key: "appeals", label: `Appeals (${appeals.filter(a => a.status === "pending").length})`, icon: <MessageSquare className="w-4 h-4" /> },
+    { key: "reviews", label: `Reviews (${reviews.length})`, icon: <Star className="w-4 h-4" /> },
   ];
 
   const getUserName = (userId: string) => {
