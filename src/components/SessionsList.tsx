@@ -37,6 +37,12 @@ const SessionsList = ({ role }: SessionsListProps) => {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<SessionWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reviewedSessionIds, setReviewedSessionIds] = useState<Set<string>>(new Set());
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewSession, setReviewSession] = useState<SessionWithProfile | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   const fetchSessions = async () => {
     if (!user) return;
@@ -59,13 +65,25 @@ const SessionsList = ({ role }: SessionsListProps) => {
         const p = profiles?.find(pr => pr.user_id === partnerId);
         return { ...s, partner_name: p ? `${p.first_name} ${p.last_name}` : "Unknown" };
       }));
+
+      // Fetch which sessions this mentee has already reviewed
+      if (role === "mentee") {
+        const sessionIds = data.map(s => s.id);
+        const { data: reviews } = await supabase
+          .from("mentor_reviews")
+          .select("session_id")
+          .eq("mentee_id", user.id)
+          .in("session_id", sessionIds);
+        if (reviews) {
+          setReviewedSessionIds(new Set(reviews.map(r => r.session_id)));
+        }
+      }
     }
     setLoading(false);
   };
 
   useEffect(() => { fetchSessions(); }, [user]);
 
-  // Realtime
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -81,6 +99,28 @@ const SessionsList = ({ role }: SessionsListProps) => {
     await supabase.from("sessions").update({ status }).eq("id", id);
     toast({ title: `Session ${status}` });
     fetchSessions();
+  };
+
+  const submitReview = async () => {
+    if (!user || !reviewSession) return;
+    setSubmittingReview(true);
+    const { error } = await supabase.from("mentor_reviews").insert({
+      mentor_id: reviewSession.mentor_id,
+      mentee_id: user.id,
+      session_id: reviewSession.id,
+      rating: reviewRating,
+      review: reviewText.trim() || null,
+    });
+    setSubmittingReview(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Review submitted", description: "Thank you for your feedback!" });
+      setReviewModalOpen(false);
+      setReviewText("");
+      setReviewRating(5);
+      fetchSessions();
+    }
   };
 
   const upcoming = sessions.filter(s => s.status === "scheduled");
