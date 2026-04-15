@@ -94,16 +94,18 @@ const AdminDashboard = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const [usersRes, mentorsRes, sessionsRes, appealsRes] = await Promise.all([
+    const [usersRes, mentorsRes, sessionsRes, appealsRes, reviewsRes] = await Promise.all([
       supabase.from("profiles").select("user_id, first_name, last_name, role, created_at").order("created_at", { ascending: false }),
       supabase.from("mentor_profiles").select("user_id, sector, bio, qualifications, certifications, achievements, available, rating, sessions_count, verified, suspended"),
       supabase.from("sessions").select("id, mentor_id, mentee_id, scheduled_date, start_time, end_time, status").order("scheduled_date", { ascending: false }),
       supabase.from("mentor_appeals").select("*").order("created_at", { ascending: false }),
+      supabase.from("mentor_reviews").select("*").order("created_at", { ascending: false }),
     ]);
     setUsers(usersRes.data || []);
     setMentors(mentorsRes.data || []);
     setSessions(sessionsRes.data || []);
     setAppeals(appealsRes.data || []);
+    setReviews(reviewsRes.data || []);
     setLoading(false);
   };
 
