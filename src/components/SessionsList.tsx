@@ -225,6 +225,46 @@ const SessionsList = ({ role }: SessionsListProps) => {
         </div>
       )}
     </div>
+
+      {/* Review Modal */}
+      <Dialog open={reviewModalOpen} onOpenChange={setReviewModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rate your session with {reviewSession?.partner_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Rating</p>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button key={star} onClick={() => setReviewRating(star)} className="focus:outline-none">
+                    <Star className={`w-7 h-7 transition-colors ${star <= reviewRating ? "text-amber-500 fill-amber-500" : "text-muted-foreground"}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Review (optional)</p>
+              <Textarea
+                value={reviewText}
+                onChange={e => setReviewText(e.target.value)}
+                placeholder="Share your experience..."
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <button onClick={() => setReviewModalOpen(false)} className="px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm font-medium hover:bg-muted/80" disabled={submittingReview}>
+              Cancel
+            </button>
+            <button onClick={submitReview} disabled={submittingReview} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">
+              {submittingReview ? "Submitting..." : "Submit Review"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
