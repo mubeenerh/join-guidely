@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, Users, Calendar, CheckCircle, BarChart3, LogOut, UserCheck, UserX, Eye, MessageSquare } from "lucide-react";
+import { ShieldCheck, Users, Calendar, CheckCircle, BarChart3, LogOut, UserCheck, UserX, Eye, MessageSquare, Star } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { useNavigate } from "react-router-dom";
 import {
