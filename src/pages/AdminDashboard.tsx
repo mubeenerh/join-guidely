@@ -350,9 +350,17 @@ const AdminDashboard = () => {
                           </div>
                           <p className="text-sm text-primary font-medium mb-1">{m.sector}</p>
                           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{m.bio}</p>
-                          <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                            <span>⭐ {m.rating ?? 0} rating</span>
-                            <span>📅 {m.sessions_count ?? 0} sessions</span>
+                          {(() => {
+                            const mentorSessions = sessions.filter(s => s.mentor_id === m.user_id);
+                            const completed = mentorSessions.filter(s => s.status === "completed").length;
+                            return (
+                              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                                <span>⭐ {m.rating ?? 0} rating</span>
+                                <span>📅 {mentorSessions.length} total sessions ({completed} completed)</span>
+                              </div>
+                            );
+                          })()}
+                          <div className="flex flex-wrap gap-4 text-xs text-muted-foreground mt-1">
                             <span>🎓 {m.qualifications?.length ?? 0} qualifications</span>
                             <span>📜 {m.certifications?.length ?? 0} certifications</span>
                           </div>
