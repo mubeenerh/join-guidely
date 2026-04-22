@@ -208,15 +208,15 @@ const SessionsList = ({ role }: SessionsListProps) => {
                       </p>
                     </div>
                   </div>
-                  {role === "mentee" && session.status === "completed" && !reviewedSessionIds.has(session.id) && (
+                  {role === "mentee" && session.status !== "cancelled" && !reviewedSessionIds.has(session.id) && (
                     <button
                       onClick={() => { setReviewSession(session); setReviewRating(5); setReviewText(""); setReviewModalOpen(true); }}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-xs font-medium hover:bg-amber-100 transition-colors"
                     >
-                      <Star className="w-3.5 h-3.5" /> Rate
+                      <Star className="w-3.5 h-3.5" /> Rate & Review
                     </button>
                   )}
-                  {role === "mentee" && session.status === "completed" && reviewedSessionIds.has(session.id) && (
+                  {role === "mentee" && reviewedSessionIds.has(session.id) && (
                     <span className="flex items-center gap-1 text-xs text-muted-foreground"><Star className="w-3.5 h-3.5 text-amber-500" /> Reviewed</span>
                   )}
                 </div>
