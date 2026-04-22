@@ -178,6 +178,15 @@ const SessionsList = ({ role }: SessionsListProps) => {
                       className="gradient-ocean text-primary-foreground px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-90">
                       Chat
                     </button>
+                    {role === "mentee" && !reviewedSessionIds.has(session.id) && (
+                      <button
+                        onClick={() => { setReviewSession(session); setReviewRating(5); setReviewText(""); setReviewModalOpen(true); }}
+                        className="flex items-center gap-1 border border-border text-foreground px-2 py-1.5 rounded-lg text-xs font-medium hover:bg-muted transition-colors"
+                        title="Rate & Review"
+                      >
+                        <Star className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     <button onClick={() => updateStatus(session.id, "cancelled")}
                       className="border border-border text-muted-foreground px-2 py-1.5 rounded-lg hover:text-destructive hover:border-destructive/30 transition-colors">
                       <XCircle className="w-3.5 h-3.5" />
