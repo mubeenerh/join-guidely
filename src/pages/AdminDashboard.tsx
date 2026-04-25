@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, Users, Calendar, CheckCircle, BarChart3, LogOut, UserCheck, UserX, Eye, MessageSquare, Star } from "lucide-react";
+import { ShieldCheck, Users, Calendar, CheckCircle, BarChart3, LogOut, UserCheck, UserX, Eye, MessageSquare, Star, TrendingUp, Clock } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { useNavigate } from "react-router-dom";
 import {
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-type TabKey = "overview" | "users" | "sessions" | "verification" | "appeals" | "reviews";
+type TabKey = "overview" | "users" | "sessions" | "verification" | "appeals" | "reviews" | "mentees";
 type VerificationFilter = "all" | "pending" | "verified" | "suspended";
 
 interface UserProfile {
@@ -156,6 +156,7 @@ const AdminDashboard = () => {
   const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: "overview", label: "Overview", icon: <BarChart3 className="w-4 h-4" /> },
     { key: "users", label: "Users", icon: <Users className="w-4 h-4" /> },
+    { key: "mentees", label: "Mentee Progress", icon: <TrendingUp className="w-4 h-4" /> },
     { key: "sessions", label: "Sessions", icon: <Calendar className="w-4 h-4" /> },
     { key: "verification", label: "Mentor Verification", icon: <CheckCircle className="w-4 h-4" /> },
     { key: "appeals", label: `Appeals (${appeals.filter(a => a.status === "pending").length})`, icon: <MessageSquare className="w-4 h-4" /> },
