@@ -283,7 +283,77 @@ const AdminDashboard = () => {
               </div>
             )}
 
-            {/* Sessions */}
+            {/* Mentee Progress */}
+            {tab === "mentees" && (() => {
+              const mentees = users.filter(u => u.role === "mentee");
+              if (mentees.length === 0) {
+                return <div className="bg-card rounded-xl border border-border p-8 text-center text-muted-foreground">No mentees yet</div>;
+              }
+              return (
+                <div className="space-y-4">
+                  {mentees.map(mentee => {
+                    const mSessions = sessions.filter(s => s.mentee_id === mentee.user_id);
+                    const completed = mSessions.filter(s => s.status === "completed");
+                    const upcoming = mSessions.filter(s => s.status === "scheduled");
+                    const cancelled = mSessions.filter(s => s.status === "cancelled");
+                    const minutes = completed.reduce((sum, s) => {
+                      const [sh, sm] = s.start_time.split(":").map(Number);
+                      const [eh, em] = s.end_time.split(":").map(Number);
+                      return sum + Math.max(0, (eh * 60 + em) - (sh * 60 + sm));
+                    }, 0);
+                    const hours = Math.round((minutes / 60) * 10) / 10;
+                    const uniqueMentors = new Set(mSessions.map(s => s.mentor_id)).size;
+                    const mReviews = reviews.filter(r => r.mentee_id === mentee.user_id);
+                    const avgRating = mReviews.length ? Math.round((mReviews.reduce((s, r) => s + r.rating, 0) / mReviews.length) * 10) / 10 : 0;
+
+                    return (
+                      <div key={mentee.user_id} className="bg-card rounded-xl border border-border p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-foreground">{mentee.first_name} {mentee.last_name}</h3>
+                            <p className="text-xs text-muted-foreground">Joined {new Date(mentee.created_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
+                          {[
+                            { icon: Calendar, label: "Total", value: mSessions.length },
+                            { icon: CheckCircle, label: "Completed", value: completed.length },
+                            { icon: Clock, label: "Upcoming", value: upcoming.length },
+                            { icon: UserX, label: "Cancelled", value: cancelled.length },
+                            { icon: Users, label: "Mentors", value: uniqueMentors },
+                            { icon: Star, label: "Reviews", value: mReviews.length },
+                          ].map((s, i) => (
+                            <div key={i} className="rounded-lg bg-muted/50 p-3">
+                              <s.icon className="w-4 h-4 text-primary mb-1" />
+                              <div className="text-lg font-bold text-foreground">{s.value}</div>
+                              <div className="text-xs text-muted-foreground">{s.label}</div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap gap-4 text-xs text-muted-foreground border-t border-border pt-3">
+                          <span>⏱ {hours} hours learned</span>
+                          {mReviews.length > 0 && <span>⭐ Avg rating given: {avgRating}</span>}
+                        </div>
+                        {mReviews.length > 0 && (
+                          <div className="mt-4 space-y-2">
+                            <p className="text-xs font-semibold text-foreground">Reviews given:</p>
+                            {mReviews.slice(0, 3).map(r => (
+                              <div key={r.id} className="text-xs p-2 rounded bg-muted/30">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="font-medium text-foreground">→ {getUserName(r.mentor_id)}</span>
+                                  <span className="text-amber-600">{"★".repeat(r.rating)}</span>
+                                </div>
+                                {r.review && <p className="text-muted-foreground italic">"{r.review}"</p>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
             {tab === "sessions" && (
               <div className="bg-card rounded-xl border border-border overflow-hidden">
                 <div className="overflow-x-auto">
