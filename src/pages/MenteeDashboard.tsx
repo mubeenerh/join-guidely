@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import SessionsList from "@/components/SessionsList";
+import MenteeProgress from "@/components/MenteeProgress";
 import { Star, Calendar, MessageSquare, TrendingUp, Search, Bell, User, BadgeCheck, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -173,13 +174,7 @@ const MenteeDashboard = () => {
 
         {tab === "sessions" && <SessionsList role="mentee" />}
 
-        {tab === "progress" && (
-          <div className="bg-card rounded-2xl border border-border p-8 text-center">
-            <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">Track Your Growth</h3>
-            <p className="text-sm text-muted-foreground">Your milestones and achievements will appear here.</p>
-          </div>
-        )}
+        {tab === "progress" && <MenteeProgress />}
       </div>
     </div>
   );
