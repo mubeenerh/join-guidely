@@ -77,8 +77,8 @@ const MenteeDashboard = () => {
       <nav className="bg-card border-b border-border sticky top-0 z-40">
         <div className="container flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="GUIDELY" className="h-8 w-8 rounded-full" />
-            <span className="font-bold text-foreground hidden sm:block">GUIDELY</span>
+            <img src={logo} alt="GUIDLY" className="h-8 w-8 rounded-full" />
+            <span className="font-bold text-foreground hidden sm:block">GUIDLY</span>
           </Link>
           <div className="flex items-center gap-4">
             <button className="relative text-muted-foreground hover:text-foreground">
