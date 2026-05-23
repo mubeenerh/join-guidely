@@ -119,7 +119,7 @@ const MentorEditProfile = () => {
           <button onClick={() => navigate("/mentor/dashboard")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4" /> Back to Dashboard
           </button>
-          <img src={logo} alt="GUIDELY" className="h-8 w-8 rounded-full" />
+          <img src={logo} alt="GUIDLY" className="h-8 w-8 rounded-full" />
         </div>
       </nav>
 
